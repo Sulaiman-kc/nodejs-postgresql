@@ -15,4 +15,12 @@ router.post("/create_user", async(req, res) =>{
     }
 });
 
+router.get("/demo", async(req, res) =>{
+    try {
+        
+        res.json({"createUser":"hello"});
+    } catch (err) {
+        console.error(err.message);
+    }
+});
 module.exports = router;
