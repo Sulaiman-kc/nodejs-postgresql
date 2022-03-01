@@ -39,7 +39,7 @@ router.post("/", async(req, res) =>{
 	    "id" SERIAL,
 	    "name" VARCHAR(100) NOT NULL,
         "is_active" INT DEFAULT 1,
-	    "image_url" VARCHAR(150) NOT NULL,
+	    "image_url" VARCHAR(150),
         "order_column" INT,
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
