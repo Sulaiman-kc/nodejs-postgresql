@@ -100,8 +100,8 @@ router.get("/", async(req, res) =>{
     );`,
     `CREATE TABLE IF NOT EXISTS "sub_categories_business" (
 	    "sub_categories_business_id" SERIAL,
-	    "main_category_id" INT,
 	    "sub_category_id" INT,
+	    "business_id" INT,
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
 	    PRIMARY KEY ("sub_categories_business_id"),
@@ -110,14 +110,14 @@ router.get("/", async(req, res) =>{
     );`,
     `CREATE TABLE IF NOT EXISTS "rating" (
 	    "rating_id" SERIAL,
-	    "user_id" INT,
+	    "users_id" INT,
 	    "business_id" INT,
 	    "rating" VARCHAR(10),
 	    "comments" JSONB,
 	    "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
 	    PRIMARY KEY ("rating_id"),
-		FOREIGN KEY (user_id) REFERENCES users (user_id),
+		FOREIGN KEY (users_id) REFERENCES users (users_id),
 		FOREIGN KEY (business_id) REFERENCES business (business_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "pages" (
@@ -152,7 +152,7 @@ router.get("/", async(req, res) =>{
     `CREATE TABLE IF NOT EXISTS "alert" (
 	    "alert_id" SERIAL,
         "data" TEXT,
-	    "user_id" INT,
+	    "users_id" INT,
         "is_read" INT DEFAULT 1,
         "type" INT DEFAULT 1,
 	    "image_url" VARCHAR(150),
@@ -160,17 +160,17 @@ router.get("/", async(req, res) =>{
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
 	    PRIMARY KEY ("alert_id"),
-		FOREIGN KEY (user_id) REFERENCES users (user_id)
+		FOREIGN KEY (users_id) REFERENCES users (users_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "favorites" (
 	    "favorites_id" SERIAL,
-        "user_id" INT,
+        "users_id" INT,
         "business_id" INT,
         "type" INT DEFAULT 1,
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
 	    PRIMARY KEY ("favorites_id"),
-		FOREIGN KEY (user_id) REFERENCES users (user_id),
+		FOREIGN KEY (users_id) REFERENCES users (users_id),
 		FOREIGN KEY (business_id) REFERENCES business (business_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "business_image" (
