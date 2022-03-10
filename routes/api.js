@@ -1,7 +1,29 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
-
+router.post("/drop_tables", async(req, res) =>{
+    try {
+        var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
+        console.log(query);
+        const createUser = await pool.query(query);
+        res.json({"status": 1});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
+router.post("/get_main_sub_category", async(req, res) =>{
+    try {
+        var query =`select * from main_sub_categories;`
+        console.log(query);
+        const createUser = await pool.query(query);
+        console.log(createUser);
+        res.json({"status": 1});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
 // router.post("/insert", async(req, res) =>{
 //     try {
 //         const { name } = req.body;
@@ -45,7 +67,7 @@ const pool = require("../db");
 
 
 
-router.post("/user_login", async(req, res) =>{
+router.post("/user_login", async(req, res) =>{//login_check
     try {
         const { phone, otp } = req.body;
         console.log(otp);
@@ -75,7 +97,7 @@ router.post("/user_details", async(req, res) =>{
         );
         res.json({"status": 1, "data":createUser.rows[0]});  
     } catch (err) {
-        res.json({"status": 0});  
+        res.json({"status": 0, "data": []});  
         console.error(err.message);
     }
 });
@@ -83,7 +105,7 @@ router.post("/user_details", async(req, res) =>{
 
 
 
-router.post("/create_user", async(req, res) =>{
+router.post("/create_user", async(req, res) =>{//new_user
     try {
         const { name, email, token, phone, address, lat, long, user_ip, otp, gender } = req.body;
         var start=new Date().toISOString();
@@ -94,7 +116,7 @@ router.post("/create_user", async(req, res) =>{
         );
         res.json({"status": 1, "data": createUser.rows[0]});  
     } catch (err) {
-        res.json({"status": 0});  
+        res.json({"status": 0, "data": []});  
         console.error(err.message);
     }
 });
@@ -108,7 +130,7 @@ router.post("/update_notification_token", async(req, res) =>{
         const createUser = await pool.query(query,[token, id]);
         res.json({"status": 1, "data": createUser.rows[0]});  
     } catch (err) {
-        res.json({"status": 0});  
+        res.json({"status": 0, "data": []});  
         console.error(err.message);
     }
 });
@@ -122,7 +144,7 @@ router.post("/edit_user", async(req, res) =>{
         const createUser = await pool.query(query,[name, email, phone, gender, avatar, id]);
         res.json({"status": 1, "data": createUser.rows});  
     } catch (err) {
-        res.json({"status": 0});  
+        res.json({"status": 0, "data": []});  
         console.error(err.message);
     }
 });
@@ -136,7 +158,7 @@ router.post("/update_location", async(req, res) =>{
         const createUser = await pool.query(query,[address, lat, long, id]);
         res.json({"status": 1, "data": createUser.rows});  
     } catch (err) {
-        res.json({"status": 0});  
+        res.json({"status": 0, "data": []});  
         console.error(err.message);
     }
 });
@@ -149,7 +171,31 @@ router.post("/get_users", async(req, res) =>{
         const createUser = await pool.query(query);
         res.json({"status": 1, "data": createUser.rows});  
     } catch (err) {
-        res.json({"status": 0});  
+        res.json({"status": 0, "data": []});  
+        console.error(err.message);
+    }
+});
+
+router.post("/get_main_category", async(req, res) =>{//get_main_category
+    try {
+        var query = `SELECT * FROM main_category where is_active='true'`;
+        console.log(query);
+        const createUser = await pool.query(query);
+        res.json({"status": 1, "data": createUser.rows});  
+    } catch (err) {
+        res.json({"status": 0, "data": []});  
+        console.error(err.message);
+    }
+});
+
+router.post("/get_business", async(req, res) =>{//get_business
+    try {
+        var query = `SELECT * FROM business where is_active='true'`;
+        console.log(query);
+        const createUser = await pool.query(query);
+        res.json({"status": 1, "data": createUser.rows});  
+    } catch (err) {
+        res.json({"status": 0, "data": []});  
         console.error(err.message);
     }
 });

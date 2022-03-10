@@ -2,19 +2,19 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 
-router.post("/", async(req, res) =>{
+router.get("/", async(req, res) =>{
     const text = [
-    `CREATE TABLE IF NOT EXISTS "roles" (
-	    "id" SERIAL,
-	    "name" VARCHAR(100),
-	    "role" VARCHAR(100),
-	    "guard_name" VARCHAR(100),
-	    "created_at" TIMESTAMP,
-	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
-    );`,
+    // `CREATE TABLE IF NOT EXISTS "roles" (
+	//     "id" SERIAL,
+	//     "name" VARCHAR(100),
+	//     "role" VARCHAR(100),
+	//     "guard_name" VARCHAR(100),
+	//     "created_at" TIMESTAMP,
+	//     "updated_at" TIMESTAMP,
+	//     PRIMARY KEY ("id")
+    // );`,
     `CREATE TABLE IF NOT EXISTS "users" (
-	    "id" SERIAL,
+	    "users_id" SERIAL,
 	    "name" VARCHAR(100) NOT NULL,
 	    "email" VARCHAR(100),
 	    "user_token" VARCHAR(200),
@@ -30,45 +30,55 @@ router.post("/", async(req, res) =>{
 	    "role" INT DEFAULT 1,
 	    "gender" VARCHAR(100),
 	    "dob" DATE,
-	    "is_active" INT DEFAULT 1,
+	    "is_active" BOOLEAN DEFAULT true,
+		"is_admin" BOOLEAN DEFAULT false,
+		"password" VARCHAR(100),
+		"language" VARCHAR(100),
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
+	    PRIMARY KEY ("users_id")
     );`,
     `CREATE TABLE IF NOT EXISTS "main_category" (
-	    "id" SERIAL,
+	    "main_category_id" SERIAL,
 	    "name" VARCHAR(100) NOT NULL,
-        "is_active" INT DEFAULT 1,
+	    "arabic_name" VARCHAR(100) NOT NULL,
+        "is_active" BOOLEAN DEFAULT true,
 	    "image_url" VARCHAR(150),
         "order_column" INT,
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
+	    PRIMARY KEY ("main_category_id")
     );`,
     `CREATE TABLE IF NOT EXISTS "sub_category" (
-	    "id" SERIAL,
+	    "sub_category_id" SERIAL,
 	    "name" VARCHAR(100) NOT NULL,
-        "is_active" INT DEFAULT 1,
+	    "arabic_name" VARCHAR(100) NOT NULL,
+        "is_active" BOOLEAN DEFAULT true,
 	    "image_url" VARCHAR(150),
         "order_column" INT,
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
+	    PRIMARY KEY ("sub_category_id")
     );`,
     `CREATE TABLE IF NOT EXISTS "main_sub_categories" (
-	    "id" SERIAL,
-	    "main_category_id" INT,
-	    "sub_category_id" INT,
+	    "main_sub_categories_id" SERIAL,
+	    "main_category_id" INT NOT NULL,
+	    "sub_category_id" INT NOT NULL,
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
+	    PRIMARY KEY ("main_sub_categories_id"),
+		FOREIGN KEY (main_category_id) REFERENCES main_category (main_category_id),
+		FOREIGN KEY (sub_category_id) REFERENCES sub_category (sub_category_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "business" (
-	    "id" SERIAL,
-	    "name" VARCHAR(100),
-        "is_active" INT DEFAULT 1,
+	    "business_id" SERIAL,
+	    "name" VARCHAR(100) NOT NULL,
+	    "arabic_name" VARCHAR(100) NOT NULL,
+        "is_active" BOOLEAN DEFAULT true,
 	    "sub_name" VARCHAR(100),
+	    "arabic_sub_name" VARCHAR(100),
 	    "description" TEXT,
+	    "arabic_description" TEXT,
         "address" VARCHAR(200),
 	    "latitude" VARCHAR(100),
 	    "longitude" VARCHAR(100),
@@ -79,59 +89,68 @@ router.post("/", async(req, res) =>{
 	    "rating" VARCHAR(10),
 	    "web" VARCHAR(100),
 	    "social_media" VARCHAR(200),
+		"timing" VARCHAR(200),
+		"service_name" JSONB,
+		"arabic_service_name" JSONB,
+		"keywords" JSONB,
+		"keys" JSONB, 
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
+	    PRIMARY KEY ("business_id")
     );`,
     `CREATE TABLE IF NOT EXISTS "sub_categories_business" (
-	    "id" SERIAL,
+	    "sub_categories_business_id" SERIAL,
 	    "main_category_id" INT,
 	    "sub_category_id" INT,
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
+	    PRIMARY KEY ("sub_categories_business_id"),
+		FOREIGN KEY (sub_category_id) REFERENCES sub_category (sub_category_id),
+		FOREIGN KEY (business_id) REFERENCES business (business_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "rating" (
-	    "id" SERIAL,
+	    "rating_id" SERIAL,
 	    "user_id" INT,
 	    "business_id" INT,
 	    "rating" VARCHAR(10),
-	    "comments" TEXT,
+	    "comments" JSONB,
 	    "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
+	    PRIMARY KEY ("rating_id"),
+		FOREIGN KEY (user_id) REFERENCES users (user_id),
+		FOREIGN KEY (business_id) REFERENCES business (business_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "pages" (
-	    "id" SERIAL,
+	    "pages_id" SERIAL,
 	    "name" VARCHAR(100) NOT NULL,
         "slug" VARCHAR(100),
 	    "body" TEXT,
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
+	    PRIMARY KEY ("pages_id")
     );`,
-    `CREATE TABLE IF NOT EXISTS "services" (
-	    "id" SERIAL,
-	    "name" VARCHAR(100) NOT NULL,
-        "is_active" INT DEFAULT 1,
-        "created_at" TIMESTAMP,
-	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
-    );`,
+    // `CREATE TABLE IF NOT EXISTS "services" (
+	//     "services_id" SERIAL,
+	//     "name" VARCHAR(100) NOT NULL,
+    //     "is_active" BOOLEAN DEFAULT true,
+    //     "created_at" TIMESTAMP,
+	//     "updated_at" TIMESTAMP,
+	//     PRIMARY KEY ("services_id")
+    // );`,
     `CREATE TABLE IF NOT EXISTS "business_enquiries" (
-	    "id" SERIAL,
+	    "business_enquiries_id" SERIAL,
 	    "name" VARCHAR(100) NOT NULL,
 	    "type" VARCHAR(100),
 	    "email" VARCHAR(100),
 	    "phone_number" VARCHAR(100),
-        "is_active" INT DEFAULT 1,
+        "is_active" BOOLEAN DEFAULT true,
 	    "sub_category" VARCHAR(100),
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-        PRIMARY KEY ("id")
+        PRIMARY KEY ("business_enquiries_id")
     );`,
     `CREATE TABLE IF NOT EXISTS "alert" (
-	    "id" SERIAL,
+	    "alert_id" SERIAL,
         "data" TEXT,
 	    "user_id" INT,
         "is_read" INT DEFAULT 1,
@@ -140,26 +159,69 @@ router.post("/", async(req, res) =>{
 	    "url" VARCHAR(150),
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
+	    PRIMARY KEY ("alert_id"),
+		FOREIGN KEY (user_id) REFERENCES users (user_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "favorites" (
-	    "id" SERIAL,
+	    "favorites_id" SERIAL,
         "user_id" INT,
         "business_id" INT,
         "type" INT DEFAULT 1,
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
+	    PRIMARY KEY ("favorites_id"),
+		FOREIGN KEY (user_id) REFERENCES users (user_id),
+		FOREIGN KEY (business_id) REFERENCES business (business_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "business_image" (
-	    "id" SERIAL,
+	    "business_image_id" SERIAL,
         "business_id" INT,
         "type" INT DEFAULT 1,
         "image_url" VARCHAR(150),
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
-	    PRIMARY KEY ("id")
-    );`
+	    PRIMARY KEY ("business_image_id"),
+		FOREIGN KEY (business_id) REFERENCES business (business_id)
+    );`,
+	`CREATE TABLE IF NOT EXISTS "hits" (
+	    "hits_id" SERIAL,
+        "business_id" INT,
+        "hits_count" INT DEFAULT 1,
+        "created_at" TIMESTAMP,
+	    "updated_at" TIMESTAMP,
+	    PRIMARY KEY ("hits_id"),
+		FOREIGN KEY (business_id) REFERENCES business (business_id)
+    );`,
+	`CREATE TABLE IF NOT EXISTS "search_hits" (
+	    "search_hits_id" SERIAL,
+        "business_id" INT,
+        "hits_count" INT DEFAULT 1,
+        "created_at" TIMESTAMP,
+	    "updated_at" TIMESTAMP,
+	    PRIMARY KEY ("search_hits_id"),
+		FOREIGN KEY (business_id) REFERENCES business (business_id)
+    );`,
+	`CREATE TABLE IF NOT EXISTS "location" (
+	    "location_id" SERIAL,
+		"name" VARCHAR(100) NOT NULL,
+	    "arabic_name" VARCHAR(100) NOT NULL,
+		"latitude" VARCHAR(100) NOT NULL,
+		"longitude" VARCHAR(100) NOT NULL,
+        "is_active" BOOLEAN DEFAULT TRUE,
+        "created_at" TIMESTAMP,
+	    "updated_at" TIMESTAMP,
+	    PRIMARY KEY ("location_id")
+    );`,
+	`CREATE TABLE IF NOT EXISTS "location_business" (
+	    "location_business_id" SERIAL,
+        "business_id" INT,
+        "location_id" INT,
+        "created_at" TIMESTAMP,
+	    "updated_at" TIMESTAMP,
+	    PRIMARY KEY ("location_business_id"),
+		FOREIGN KEY (business_id) REFERENCES business (business_id),
+		FOREIGN KEY (location_id) REFERENCES location (location_id)
+    );`,
     ];
     for(var i in text){
         // console.log(text[i]);
