@@ -73,8 +73,9 @@ router.post("/add_main_category", async(req, res) =>{
         var array=[]
         sub_categories_id.forEach(element => {
             let json={}
+            json['main_sub_categories_id'] =Math.random().toString(36).substr(2, 9);
             json['main_category_id'] = main_category_id
-            json['sub_category_id'] = element.sub_categories_id
+            json['sub_category_id'] = element.sub_category_id
             json['created_at'] = start
             json['updated_at'] = start
             array.push(json)
@@ -88,11 +89,12 @@ router.post("/add_main_category", async(req, res) =>{
     // SELECT * FROM json_populate_recordset (NULL::contacts,
     //   $1) `
     // let value = [req.body.data];
+    console.log(array);
    let createUser2 = await pool.query(
-                `INSERT INTO contacts
-                SELECT * FROM json_populate_recordset (NULL::contacts,
+                `INSERT INTO main_sub_categories
+                SELECT * FROM json_populate_recordset (NULL::main_sub_categories,
                   $1)`,
-                [array]
+                [JSON.stringify(array)]
             );
             console.log("createUser2");
 console.log(createUser2);

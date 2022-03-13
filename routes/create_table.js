@@ -20,8 +20,8 @@ router.get("/", async(req, res) =>{
 	    "user_token" VARCHAR(200),
 	    "phone_number" VARCHAR(100) NOT NULL,
 	    "address" VARCHAR(200),
-	    "latitude" VARCHAR(100),
-	    "longitude" VARCHAR(100),
+	    "latitude" double precision ,
+	    "longitude" double precision ,
 	    "avatar" VARCHAR(100),
 	    "user_ip" VARCHAR(100),
 	    "image_url" VARCHAR(150),
@@ -61,7 +61,7 @@ router.get("/", async(req, res) =>{
 	    PRIMARY KEY ("sub_category_id")
     );`,
     `CREATE TABLE IF NOT EXISTS "main_sub_categories" (
-	    "main_sub_categories_id" SERIAL,
+	    "main_sub_categories_id" TEXT,
 	    "main_category_id" INT NOT NULL,
 	    "sub_category_id" INT NOT NULL,
         "created_at" TIMESTAMP,
@@ -80,8 +80,8 @@ router.get("/", async(req, res) =>{
 	    "description" TEXT,
 	    "arabic_description" TEXT,
         "address" VARCHAR(200),
-	    "latitude" VARCHAR(100),
-	    "longitude" VARCHAR(100),
+	    "latitude" double precision,
+	    "longitude" double precision,
         "phone_number" VARCHAR(100),
         "alt_phone_number" VARCHAR(100),
 	    "email" VARCHAR(100),
@@ -205,8 +205,8 @@ router.get("/", async(req, res) =>{
 	    "location_id" SERIAL,
 		"name" VARCHAR(100) NOT NULL,
 	    "arabic_name" VARCHAR(100) NOT NULL,
-		"latitude" VARCHAR(100) NOT NULL,
-		"longitude" VARCHAR(100) NOT NULL,
+		"latitude" double precision NOT NULL,
+		"longitude" double precision NOT NULL,
         "is_active" BOOLEAN DEFAULT TRUE,
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
@@ -227,7 +227,8 @@ router.get("/", async(req, res) =>{
         // console.log(text[i]);
         try {
             const createUser = await pool.query(text[i]);
-        } catch (err) {
+        } 
+		catch (err) {
             console.error(err.message);
         }
     }
