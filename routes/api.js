@@ -578,18 +578,18 @@ router.post("/store_rating", async(req, res) =>{
             console.error(err.message);
         }
     });
-    router.post("/get_business_withkeyword", async(req, res) =>{//get_location
-        try {
-            const {user_id}  = req.body//'2';
-            var query = `select * from alert where users_id='`+user_id+`'`
-            console.log(query);
-            const createUser = await pool.query(query);
-            res.json({"status": 1, "data": createUser.rows});  
-        } catch (err) {
-            res.json({"status": 0, "data": []});  
-            console.error(err.message);
-        }
-    });
+//     router.post("/get_business_withkeyword", async(req, res) =>{//get_location
+//         try {
+//             const {user_id}  = req.body//'2';
+//             var query = `select * from alert where users_id='`+user_id+`'`
+//             console.log(query);
+//             const createUser = await pool.query(query);
+//             res.json({"status": 1, "data": createUser.rows});  
+//         } catch (err) {
+//             res.json({"status": 0, "data": []});  
+//             console.error(err.message);
+//         }
+//     });
     // select * from alert where users_id='2';
     // get_business_withkeyword
     // select * from business b,(select business_id from keyword where name='name1') k where b.business_id=k.business_id;
