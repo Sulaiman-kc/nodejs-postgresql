@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
-
+//knex
 router.get("/", async(req, res) =>{
     const text = [
     // `CREATE TABLE IF NOT EXISTS "roles" (
@@ -92,8 +92,6 @@ router.get("/", async(req, res) =>{
 		"timing" VARCHAR(200),
 		"service_name" JSONB,
 		"arabic_service_name" JSONB,
-		"keywords" JSONB,
-		"keys" JSONB, 
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
 	    PRIMARY KEY ("business_id")
@@ -148,6 +146,15 @@ router.get("/", async(req, res) =>{
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
         PRIMARY KEY ("business_enquiries_id")
+    );`, `CREATE TABLE IF NOT EXISTS "keyword" (
+	    "keyword_id" SERIAL,
+		"business_id" INT,
+	    "name" VARCHAR(100),
+	    "key" VARCHAR(100),
+        "created_at" TIMESTAMP,
+	    "updated_at" TIMESTAMP,
+        PRIMARY KEY ("keyword_id"),
+		FOREIGN KEY (business_id) REFERENCES business (business_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "alert" (
 	    "alert_id" SERIAL,
