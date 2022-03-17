@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
+// var cors = require('cors')
+// router.use(cors());
 router.get("/drop_tables", async(req, res) =>{
     try {
         var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
@@ -239,14 +241,15 @@ router.post("/get_main_sub_category", async(req, res) =>{
 
 router.post("/user_login", async(req, res) =>{//login_check
     try {
+        console.log(req.body);
         const { phone, otp } = req.body;
         console.log(otp);
         const createUser = await pool.query(
-            "SELECT * FROM users WHERE phone_number = $1",
-            [phone]
+            "SELECT * FROM users WHERE phone_number = $1 and is_active='true' and otp=$2",
+            [phone,otp]
         );
         if(createUser.rows.length == 0){
-            res.json({"status": 1, "isNewUser": 1});  
+            res.json({"status": 1, "isNewUser": 1, "data":[]});  
         }
         else{
             res.json({"status": 1, "isNewUser": 0, "data":createUser.rows[0]});  
@@ -337,7 +340,7 @@ router.post("/update_location", async(req, res) =>{
 
 router.post("/get_users", async(req, res) =>{
     try {
-        var query = `SELECT * FROM users`;
+        var query = `SELECT * FROM users where is_active='true'`;
         console.log(query);
         const createUser = await pool.query(query);
         res.json({"status": 1, "data": createUser.rows});  

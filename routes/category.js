@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+// const app =express()
 const pool = require("../db");
 var multer = require('multer');
 const config = require('../config.json');
@@ -17,6 +18,11 @@ var cors = require('cors')
 const bodyParser = require('body-parser')
 router.use(bodyParser.urlencoded({ extended: false }));
 // middleware that is specific to this router
+// app.use(bodyParser.urlencoded({ extended: false }))
+
+// app.use(bodyParser.json())
+
+// app.use(express.json()); 
 router.use(cors());
 router.use(function timelog(req, resp, next) {
   next();
@@ -286,7 +292,36 @@ router.post("/get_main_sub_category", async(req, res) =>{
         console.error(err.message);
     }
 });
+router.post("/get_business", async(req, res) =>{//get_business
+    try {
+        var query = `SELECT * FROM business `;
+        console.log(query);
+        const createUser = await pool.query(query);
+        res.json({"status": 1, "data": createUser.rows});  
+    } catch (err) {
+        res.json({"status": 0, "data": []});  
+        console.error(err.message);
+    }
+});
+// router.get("/add_busiess", async(req, res) =>{
+//     try {
+//         // var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
+//         // console.log(query);
+//         console.log(req.body);
+//         const { name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name } =JSON.parse(req.body);
+//         var start=new Date().toISOString();
 
+//         const createUser = await pool.query(
+//             `INSERT INTO business (name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name, created_at, updated_at ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22) RETURNING *`,
+//             [name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name,start,start]
+//             // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
+//         );
+//         res.json({"status": 1});  
+//     } catch (err) {
+//         res.json({"status": 0});  
+//         console.error(err.message);
+//     }
+// });
 
 
 
