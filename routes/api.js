@@ -24,6 +24,12 @@ router.post("/get_main_sub_category", async(req, res) =>{
         console.error(err.message);
     }
 });
+router.post("/", async(req, res) =>{
+	res.json({"type": "post"})
+});
+router.get("/", async(req, res) =>{
+   res.json({"type": "get"})
+});
 // router.post("/insert", async(req, res) =>{
 //     try {
 //         const { name } = req.body;
