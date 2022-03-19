@@ -242,10 +242,10 @@ router.post("/get_main_sub_category", async(req, res) =>{
 router.post("/user_login", async(req, res) =>{//login_check
     try {
         console.log(req.body);
-        const { phone, otp } = req.body;
-        console.log(otp);
+        const { phone } = req.body;
+        // console.log(otp);
         const createUser = await pool.query(
-            "SELECT * FROM users WHERE phone_number = $1 and is_active='true' and otp=$2",
+            "SELECT * FROM users WHERE phone_number = $1 and is_active='true'",
             [phone,otp]
         );
         if(createUser.rows.length == 0){
