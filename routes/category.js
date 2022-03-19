@@ -62,6 +62,23 @@ router.post("/get_users", async(req, res) =>{
         console.error(err.message);
     }
 });
+router.post("/active_users", async(req, res) =>{
+    try {
+        console.log("body: %j", req.body)
+        // console.log(JSON.parse(req.body));
+        const { users_id , is_active  } = req.body;
+        var start=new Date().toISOString();
+        var query = `UPDATE users SET is_active = $1, updated_at = $2 WHERE users_id = $3 RETURNING *`;
+        const createUser = await pool.query(query,
+            [is_active, start, users_id]
+        );
+        res.json({"status": 1, "data": createUser.rows[0]});  
+    }
+    catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
 
 
 router.post("/add_main_category", async(req, res) =>{
@@ -134,7 +151,7 @@ router.post("/edit_main_category", async(req, res) =>{
 router.post("/active_main_category", async(req, res) =>{
     try {
         console.log(req.body);
-        const { is_active, main_category_id } = req.body;
+        const { is_active, main_category_id } = req.body
         var start=new Date().toISOString();
         var query = `UPDATE main_category SET is_active = $1, updated_at = $2 WHERE main_category_id = $3 RETURNING *`;
         const createUser = await pool.query(query,
@@ -200,7 +217,7 @@ router.post("/edit_sub_category", async(req, res) =>{
 router.post("/active_sub_category", async(req, res) =>{
     try {
         console.log(req.body);
-        const { is_active, sub_category_id } = JSON.parse(req.body);
+        const { is_active, sub_category_id } = req.body
         var start=new Date().toISOString();
         var query = `UPDATE sub_category SET is_active = $1, updated_at = $2 WHERE sub_category_id = $3 RETURNING *`;
         const createUser = await pool.query(query,
@@ -300,6 +317,21 @@ router.post("/get_business", async(req, res) =>{//get_business
         res.json({"status": 1, "data": createUser.rows});  
     } catch (err) {
         res.json({"status": 0, "data": []});  
+        console.error(err.message);
+    }
+});
+router.post("/active_business", async(req, res) =>{
+    try {
+        console.log(req.body);
+        const { is_active, business_id } = req.body
+        var start=new Date().toISOString();
+        var query = `UPDATE business SET is_active = $1, updated_at = $2 WHERE business_id = $3 RETURNING *`;
+        const createUser = await pool.query(query,
+            [is_active, start, business_id]
+        );
+        res.json({"status": 1, "data": createUser.rows[0]});  
+    } catch (err) {
+        res.json({"status": 0});  
         console.error(err.message);
     }
 });

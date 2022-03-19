@@ -8,7 +8,12 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(bodyParser.json())
-
+// var options = {
+//     inflate: true,
+//     limit: '100kb',
+//     type: 'application/json'
+// };
+// app.use(bodyParser.raw(options));
 app.use(express.json()); 
 
 
