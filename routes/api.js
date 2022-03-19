@@ -246,7 +246,7 @@ router.post("/user_login", async(req, res) =>{//login_check
         // console.log(otp);
         const createUser = await pool.query(
             "SELECT * FROM users WHERE phone_number = $1 and is_active='true'",
-            [phone,otp]
+            [phone]
         );
         if(createUser.rows.length == 0){
             res.json({"status": 1, "isNewUser": 1, "data":[]});  
