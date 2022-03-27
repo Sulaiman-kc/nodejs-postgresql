@@ -28,9 +28,9 @@ const createTableRoute = require("./routes/create_table");
 // })
 
 
-app.use("/api", apiRoute);
-app.use("/category", categoryRoute);
-app.use("/create_table", createTableRoute);
+app.use("/v1/api", apiRoute);
+app.use("/v1/category", categoryRoute);
+app.use("/v1/create_table", createTableRoute);
 // app.use("/mobileapp", mobileAppRoute);
 
 

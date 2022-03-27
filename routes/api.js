@@ -265,7 +265,7 @@ router.post("/get_user_details", async(req, res) =>{
     try {
         const { id } = req.body;
         const createUser = await pool.query(
-            "SELECT * FROM users WHERE id = $1",
+            "SELECT * FROM users WHERE id = $1 and is_active='true'",
             [id]
         );
         res.json({"status": 1, "data":createUser.rows[0]});  

@@ -20,7 +20,7 @@ router.use(bodyParser.urlencoded({ extended: false }));
 // middleware that is specific to this router
 // app.use(bodyParser.urlencoded({ extended: false }))
 
-// app.use(bodyParser.json())
+router.use(bodyParser.json())
 
 // app.use(express.json()); 
 router.use(cors());
@@ -83,6 +83,7 @@ router.post("/active_users", async(req, res) =>{
 
 router.post("/add_main_category", async(req, res) =>{
     try {
+        console.log(req.body);
         console.log(JSON.parse(req.body.data));
         console.log(JSON.parse(req.body.sub_categories_id));
         var sub_categories_id = JSON.parse(req.body.sub_categories_id)
@@ -102,16 +103,8 @@ router.post("/add_main_category", async(req, res) =>{
             json['created_at'] = start
             json['updated_at'] = start
             array.push(json)
-
-            // let createUser2 = await pool.query(
-            //     "INSERT INTO main_sub_category (main_category_id,sub_category_id, created_at, updated_at) VALUES ($1, $2, $3, $4) RETURNING *",
-            //     [main_category_id,element.id,  start, start]
-            // );
         });
-    //     const text = `INSERT INTO contacts
-    // SELECT * FROM json_populate_recordset (NULL::contacts,
-    //   $1) `
-    // let value = [req.body.data];
+
     console.log(array);
    let createUser2 = await pool.query(
                 `INSERT INTO main_sub_categories
@@ -335,26 +328,111 @@ router.post("/active_business", async(req, res) =>{
         console.error(err.message);
     }
 });
-// router.get("/add_busiess", async(req, res) =>{
-//     try {
-//         // var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
-//         // console.log(query);
-//         console.log(req.body);
-//         const { name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name } =JSON.parse(req.body);
-//         var start=new Date().toISOString();
+router.post("/add_business", async(req, res) =>{
+    try {
+        // var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
+        // console.log(query);
+        console.log(req.body);
+        var sub_categories_id = JSON.parse(req.body.sub_categories_id)
+        var images = JSON.parse(req.body.images)
+        const { name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name ,mapingname ,arabic_mapingname } =JSON.parse(req.body.data);
+        
+        var start=new Date().toISOString();
 
-//         const createUser = await pool.query(
-//             `INSERT INTO business (name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name, created_at, updated_at ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22) RETURNING *`,
-//             [name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name,start,start]
-//             // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
-//         );
-//         res.json({"status": 1});  
-//     } catch (err) {
-//         res.json({"status": 0});  
-//         console.error(err.message);
-//     }
-// });
+        const createUser = await pool.query(
+            `INSERT INTO business (name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name, created_at, updated_at ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22) RETURNING *`,
+            [name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name,start,start]
+            // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
+        );
+        const business_id = createUser.rows[0].business_id
+        await sub_categories_business(business_id,sub_categories_id,start)
+        await savelocation(business_id,latitude,longitude,start,mapingname,arabic_mapingname)
+        await saveimages(business_id,images,start)
+        res.json({"status": 1});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.log(err);
+        console.error(err.message);
+    }
+});
+async function sub_categories_business(business_id,sub_categories_id,start){
+    // "sub_categories_business_id" SERIAL,
+    // "sub_category_id" INT,
+    // "business_id" INT,
+    // const business_id = createUser.rows[0].main_category_id
+        var array=[]
+        sub_categories_id.forEach(element => {
+            let json={}
+            json['sub_categories_business_id'] =Math.random().toString(36).substr(2, 9);
+            json['sub_category_id'] = element.sub_category_id
+            json['business_id'] = business_id
+            json['created_at'] = start
+            json['updated_at'] = start
+            array.push(json)
+        });
 
+    console.log(array);
+   let createUser2 = await pool.query(
+                `INSERT INTO sub_categories_business
+                SELECT * FROM json_populate_recordset (NULL::sub_categories_business,
+                  $1)`,
+                [JSON.stringify(array)]
+            );
+            console.log("createUser2");
+            console.log(createUser2);
+
+}
+async function savelocation(business_id,latitude,longitude,start,mapingname,arabic_mapingname)
+{
+  
+  const is_active =true
+    // console.log(array);
+    const createUser2 = await pool.query(
+        `INSERT INTO location (name, arabic_name, latitude, longitude, is_active,created_at, updated_at ) VALUES ( $1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [mapingname, arabic_mapingname,  latitude, longitude,is_active,start,start]
+        // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
+    );
+    const createUser3 = await pool.query(
+        `INSERT INTO location_business ( business_id, location_id,created_at, updated_at ) VALUES ( $1, $2, $3, $4) RETURNING *`,
+        [ business_id,  createUser2.location_id,start,start]
+        // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
+    );
+    console.log(createUser3);
+//    let createUser2 = await pool.query(
+//                 `INSERT INTO location
+//                 SELECT * FROM json_populate_recordset (NULL::location,
+//                   $1)`,
+//                 [JSON.stringify(array)]
+//             );
+            console.log("createUser2");
+console.log(createUser2);
+}
+async function saveimages(business_id,images,start)
+{
+    var array=[]
+    images.forEach(element => {
+        let json={}
+        json['business_image_id'] =element.business_image_id
+
+        // json['business_image_id'] =Math.random().toString(36).substr(2, 9);
+        json['business_id'] = business_id
+        json['type']=element.type
+        json['image_url']=element.url
+        json['created_at'] = start
+        json['updated_at'] = start
+        array.push(json)
+    });
+
+console.log(array);
+let createUser3 = await pool.query(
+            `INSERT INTO business_image
+            SELECT * FROM json_populate_recordset (NULL::business_image,
+              $1)`,
+            [JSON.stringify(array)]
+        );
+        console.log("createUser3");
+        console.log(createUser3);
+}
 
 
 
