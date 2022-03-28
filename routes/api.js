@@ -232,13 +232,13 @@ router.post("/get_user_details", async(req, res) =>{
 
 router.post("/create_user", async(req, res) =>{//new_user
     try {
-        const { name, email, token, phone, address, lat, long, user_ip, otp, gender } = req.body//{ 'name':'name1','email':'email1','token':'token1','phone':'232341321','address':'dsffdfdfs1','lat':2.333333,'long':4.333333,'user_ip':'weqewqw1','otp':32323,'gender':'male' }
+        const { name, email, token, phone, address, lat, long, user_ip, otp, gender, image_url } = req.body//{ 'name':'name1','email':'email1','token':'token1','phone':'232341321','address':'dsffdfdfs1','lat':2.333333,'long':4.333333,'user_ip':'weqewqw1','otp':32323,'gender':'male' }
         req.body;
         var start=new Date().toISOString();
         console.log(otp);
         const createUser = await pool.query(
-            "INSERT INTO users (name, email, user_token, phone_number, address, latitude, longitude, user_ip, otp, gender, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *",
-            [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
+            "INSERT INTO users (name, email, user_token, phone_number, address, latitude, longitude, user_ip, otp, gender, image_url, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *",
+            [name, email, token, phone, address, lat, long, user_ip, otp, gender, image_url, start, start]
         );
         res.json({"status": 1, "data": createUser.rows[0]});  
     } catch (err) {
@@ -264,11 +264,11 @@ router.post("/update_notification_token", async(req, res) =>{
 
 router.post("/edit_user", async(req, res) =>{
     try {
-        const { name, email, phone, gender, avatar, id } = req.body;
-        var query = `UPDATE users SET name = $1, email = $2, phone_number = $3, gender = $4, avatar = $5 WHERE id = $6 RETURNING *`;
+        const { name, email, phone, image_url, id } = req.body;
+        var query = "UPDATE users SET name = $1, email = $2, phone_number = $3, image_url = $4 WHERE users_id = $5 RETURNING *";
         console.log(query);
-        const createUser = await pool.query(query,[name, email, phone, gender, avatar, id]);
-        res.json({"status": 1, "data": createUser.rows});  
+        const createUser = await pool.query(query,[name, email, phone, image_url, id]);
+        res.json({"status": 1, "data": createUser.rows[0]});  
     } catch (err) {
         res.json({"status": 0, "data": []});  
         console.error(err.message);
@@ -301,6 +301,23 @@ router.post("/get_users", async(req, res) =>{
         console.error(err.message);
     }
 });
+
+
+router.post("/business_enquiry", async(req, res) =>{
+    try {
+        const { name, business_name, email, phone, sub_category } = req.body;
+        var start=new Date().toISOString();
+        var query = `INSERT INTO business_enquiries (name, business_name, email, phone_number, sub_category, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
+        console.log(query);
+        const createUser = await pool.query(query, [name, business_name, email, phone, sub_category, start, start]);
+        res.json({"status": 1, "data": createUser.rows});  
+    } catch (err) {
+        res.json({"status": 0, "data": []});  
+        console.error(err.message);
+    }
+});
+
+
 
 router.post("/get_main_category", async(req, res) =>{//get_main_category
     try {
