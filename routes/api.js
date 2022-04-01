@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
+var request = require('request');
 // var cors = require('cors')
 // router.use(cors());
 router.get("/drop_tables", async(req, res) =>{
@@ -548,6 +549,49 @@ router.post("/store_rating", async(req, res) =>{
         } catch (err) {
             res.json({"status": 0, "data": []});  
             console.error(err.message);
+        }
+    });
+    router.post("/push_notification", async(req, res) =>{//get_location
+
+        try {
+
+                var query = `SELECT user_token FROM users where is_active='true'`;
+                console.log(query);
+                const createUser = await pool.query(query);
+                var list = [];
+                for(var i = 0; i < createUser.rows.length; i++){
+                    list.push(createUser.rows[i]["user_token"]);
+                }
+                // res.json({"status": 1, "data": createUser.rows});
+            var body = {
+                "registration_ids" : list,
+                "notification" : {
+                    "body" : "Body of Your Notification",
+                    "title": "Title of Your Notification",
+                   "sound": "default"
+                },
+                "data" : {
+                    "body" : "https://fcm.googleapis.com/fcm/send",
+                    "title": "Title of Your Notification",
+                    "message": "Body of Your Notification",
+                   "sound": "default"
+                },
+               "priority": "high"
+            }
+            request({
+                url: "https://fcm.googleapis.com/fcm/send",
+                method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Authorization': 'key = AAAAUbKPSFA:APA91bF3l5wTxOD6MT0d7n-3LoCgPMemIZI6rWzX9XiC0i3SQE3ARD4Q4auEiljwQfQZeRJz6JGw5PoE_G9lBV1rTbwBem-wHdHwuu-dCYFeJ4u-1CCZH-vxs-OtgiuyQMfzGrNfCx-N',
+                },
+                body: JSON.stringify(body)
+            }, function (error, response, body){
+                
+                res.json({"status": 1, "data": list});  
+            });
+        } catch(err) {
+            res.json({"status": 0, "data": []});  
         }
     });
 //     router.post("/get_business_withkeyword", async(req, res) =>{//get_location
