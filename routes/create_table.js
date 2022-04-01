@@ -137,7 +137,8 @@ router.get("/", async(req, res) =>{
     // );`,
     `CREATE TABLE IF NOT EXISTS "business_enquiries" (
 	    "business_enquiries_id" SERIAL,
-	    "name" VARCHAR(100) NOT NULL,
+	    "name" VARCHAR(100),
+		"business_name" VARCHAR(100),
 	    "type" VARCHAR(100),
 	    "email" VARCHAR(100),
 	    "phone_number" VARCHAR(100),
@@ -157,10 +158,10 @@ router.get("/", async(req, res) =>{
 		FOREIGN KEY (business_id) REFERENCES business (business_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "alert" (
-	    "alert_id" SERIAL,
+	    "alert_id" TEXT,
         "data" TEXT,
 	    "users_id" INT,
-        "is_read" INT DEFAULT 1,
+        "is_read" INT DEFAULT 0,
         "type" INT DEFAULT 1,
 	    "image_url" TEXT,
 	    "url" VARCHAR(150),
