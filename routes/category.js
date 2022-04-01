@@ -50,7 +50,18 @@ router.use(function timelog(req, resp, next) {
         res.json({status:"success",serverpath:config.imageurlpath})
       }
   })
-
+  
+  router.post("/get_business_enqueries", async(req, res) =>{
+    try {
+        var query = `SELECT * FROM business_enquiries`;
+        console.log(query);
+        const createUser = await pool.query(query);
+        res.json({"status": 1, "data": createUser.rows});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
 router.post("/get_users", async(req, res) =>{
     try {
         var query = `SELECT * FROM users`;
@@ -161,7 +172,7 @@ router.post("/active_main_category", async(req, res) =>{
 
 router.post("/get_main_category", async(req, res) =>{
     try {
-        var query = `SELECT * FROM main_category`;
+        var query = `SELECT * FROM main_category order by updated_at desc`;
         console.log(query);
         const createUser = await pool.query(query);
         res.json({"status": 1, "data": createUser.rows});  
@@ -172,11 +183,72 @@ router.post("/get_main_category", async(req, res) =>{
 });
 
 
+router.post("/add_notification", async(req, res) =>{
+    try {
+// const order_column=3
+        // const {  data } = JSON.parse(req.body);
+        console.log(req.body);
+        var data={}
+        data['data'] = req.body
+        
+        console.log(data);
+        
+        var start=new Date().toISOString();
+        var query = `SELECT users_id FROM users where is_active='true' `;
+        console.log(query);
+        const createUser = await pool.query(query);
+        var array=[]
+        createUser.rows.forEach(element => {
+            let json={}
+            json['alert_id'] =Math.random().toString(36).substr(2, 9);
+            json['data'] = data
+            json['users_id'] = element.users_id
+            json['is_read'] = 0
+            console.log(element);
+            json['type'] = 0
+            json['image_url'] = ''
+            json['url'] = ''
+            json['created_at'] = start
+            json['updated_at'] = start
+            array.push(json)
+        });
+        let createUser2 = await pool.query(
+            `INSERT INTO alert
+            SELECT * FROM json_populate_recordset (NULL::alert,
+              $1)`,
+            [JSON.stringify(array)]
+        );
+        console.log("createUser2");
+console.log(createUser2);
+        // `CREATE TABLE IF NOT EXISTS "alert" (
+        //     "alert_id" SERIAL,
+        //     "data" TEXT,
+        //     "users_id" INT,
+        //     "is_read" INT DEFAULT 0,
+        //     "type" INT DEFAULT 1,
+        //     "image_url" TEXT,
+        //     "url" VARCHAR(150),
+        //     "created_at" TIMESTAMP,
+        //     "updated_at" TIMESTAMP,
+        //     PRIMARY KEY ("alert_id"),
+        //     FOREIGN KEY (users_id) REFERENCES users (users_id)
+        // );`,
+        // const createUser3 = await pool.query(
+        //     "INSERT INTO alert (data,users_id ,created_at, updated_at) VALUES ($1, $2, $3, $4) RETURNING *",
+        //     [ data,users_id, start, start]
+        // );
 
+        res.json({"status": 1, "data": createUser2.rows[0]});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
 
 router.post("/add_sub_category", async(req, res) =>{
     try {
-        const { name, arabic_name , image_url, order_column, is_active } = JSON.parse(req.body.data);
+const order_column=3
+        const { name, arabic_name , image_url, is_active } = JSON.parse(req.body.data);
         var start=new Date().toISOString();
      
         const createUser = await pool.query(
@@ -226,7 +298,7 @@ router.post("/active_sub_category", async(req, res) =>{
 
 router.post("/get_sub_category", async(req, res) =>{
     try {
-        var query = `SELECT * FROM sub_category`;
+        var query = `SELECT * FROM sub_category order by updated_at desc `;
         console.log(query);
         const createUser = await pool.query(query);
         res.json({"status": 1, "data": createUser.rows});  
@@ -235,7 +307,35 @@ router.post("/get_sub_category", async(req, res) =>{
         console.error(err.message);
     }
 });
-
+router.post("/get_sub_category_list_in_main_category", async(req, res) =>{//get_sub_category_list
+    try {
+        console.log(req.body.main_category_id);
+        const main_category_id = req.body.main_category_id
+        var query = `SELECT * FROM sub_category where is_active='true'`;
+        console.log(query);
+        const createUser = await pool.query(query);
+        var query2=`SELECT sub_category_id FROM main_sub_categories where main_category_id='`+main_category_id+`'`;
+        const createUser2 = await pool.query(query2);
+console.log(createUser2.rows);
+        res.json({"status": 1, "data": createUser.rows.map((items)=>{
+            // console.log(items);
+            let index=(createUser2.rows).findIndex(item=>item.sub_category_id==items.sub_category_id)
+            console.log(index);
+            if(index ==-1)
+            {
+                items['value']=false
+                return items
+            }
+            else{
+                items['value']=true
+                return items
+            }
+        })});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
 router.post("/get_sub_category_list", async(req, res) =>{//get_sub_category_list
     try {
         var query = `SELECT * FROM sub_category where is_active='true'`;
@@ -249,7 +349,35 @@ router.post("/get_sub_category_list", async(req, res) =>{//get_sub_category_list
         console.error(err.message);
     }
 });
-
+router.post("/get_sub_category_list_in_business", async(req, res) =>{//get_sub_category_list
+    try {
+        console.log(req.body.business_id);
+        const business_id = req.body.business_id
+        var query = `SELECT * FROM sub_category where is_active='true'`;
+        console.log(query);
+        const createUser = await pool.query(query);
+        var query2=`SELECT sub_category_id FROM sub_categories_business where business_id='`+business_id+`'`;
+        const createUser2 = await pool.query(query2);
+console.log(createUser2.rows);
+        res.json({"status": 1, "data": createUser.rows.map((items)=>{
+            // console.log(items);
+            let index=(createUser2.rows).findIndex(item=>item.sub_category_id==items.sub_category_id)
+            console.log(index);
+            if(index ==-1)
+            {
+                items['value']=false
+                return items
+            }
+            else{
+                items['value']=true
+                return items
+            }
+        })});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
 router.post("/set_main_sub_category", async(req, res) =>{
     try {
         const { main_category_id, sub_category_id } = req.body;
@@ -279,6 +407,7 @@ router.post("/set_main_sub_category", async(req, res) =>{
 });
 
 
+
 router.post("/get_main_sub_category", async(req, res) =>{
     try {
         const { id } = req.body;
@@ -302,9 +431,20 @@ router.post("/get_main_sub_category", async(req, res) =>{
         console.error(err.message);
     }
 });
+router.post("/get_business_isactive", async(req, res) =>{//get_business
+    try {
+        var query = `SELECT business_id,name FROM business where is_active='true' order by updated_at desc`;
+        console.log(query);
+        const createUser = await pool.query(query);
+        res.json({"status": 1, "data": createUser.rows});  
+    } catch (err) {
+        res.json({"status": 0, "data": []});  
+        console.error(err.message);
+    }
+});
 router.post("/get_business", async(req, res) =>{//get_business
     try {
-        var query = `SELECT * FROM business `;
+        var query = `SELECT * FROM business order by updated_at desc`;
         console.log(query);
         const createUser = await pool.query(query);
         res.json({"status": 1, "data": createUser.rows});  
