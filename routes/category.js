@@ -50,7 +50,20 @@ router.use(function timelog(req, resp, next) {
         res.json({status:"success",serverpath:config.imageurlpath})
       }
   })
-  
+  router.post("/login_check", async(req, res) =>{
+    try {
+        const { username ,password}=req.body
+        var query = `SELECT * FROM users where name='`+username+`' and password='`+password+`'`;
+        console.log(query);
+        const createUser = await pool.query(query);
+        console.log(createUser);
+        var status=(createUser.rows.length>0)?createUser.rows[0].is_admin:false
+            res.json({"status": status});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
   router.post("/get_business_enqueries", async(req, res) =>{
     try {
         var query = `SELECT * FROM business_enquiries`;
@@ -182,7 +195,22 @@ router.post("/get_main_category", async(req, res) =>{
     }
 });
 
-
+router.post("/add_location", async(req, res) =>{
+    try {
+// const order_column=3
+        const { name, arabic_name , latitude, longitude } = JSON.parse(req.body.data);
+        var start=new Date().toISOString();
+     
+        const createUser = await pool.query(
+            "INSERT INTO location (name,arabic_name, latitude,longitude, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+            [name, arabic_name , latitude,longitude, start, start]
+        );
+        res.json({"status": 1, "data": createUser.rows[0]});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
 router.post("/add_notification", async(req, res) =>{
     try {
 // const order_column=3
@@ -336,20 +364,64 @@ console.log(createUser2.rows);
         console.error(err.message);
     }
 });
-router.post("/get_sub_category_list", async(req, res) =>{//get_sub_category_list
+router.post("/get_sub_category_list_location", async(req, res) =>{//get_sub_category_list
     try {
         var query = `SELECT * FROM sub_category where is_active='true'`;
         console.log(query);
         const createUser = await pool.query(query);
-        res.json({"status": 1, "data": createUser.rows.map((items)=>({
+        var query2 = `SELECT location_id,name FROM location where is_active='true'`;
+        console.log(query2);
+        const createUser2 = await pool.query(query2);
+        res.json({"status": 1, "sub_category_data": createUser.rows.map((items)=>({
             ...items,value:false
-        }))});  
+        })),
+        "location_data":createUser2.rows
+    });  
     } catch (err) {
         res.json({"status": 0});  
         console.error(err.message);
     }
 });
-router.post("/get_sub_category_list_in_business", async(req, res) =>{//get_sub_category_list
+// get_businessimages_location
+router.post("/get_businessimages_location", async(req, res) =>{//get_sub_category_list
+    try {
+        // console.log(req.body.business_id);
+        const business_id = req.body.business_id
+        // business_image_id, url ,type
+        var query = `SELECT image_url,type FROM business_image where business_id='`+business_id+`'`;
+        console.log(query);
+        const images = await pool.query(query);
+        // "location_id" SERIAL,
+		// "name" VARCHAR(100) NOT NULL,
+	    // "arabic_name" VARCHAR(100) NOT NULL,
+		// "latitude" double precision NOT NULL,
+		// "longitude" double precision NOT NULL,
+        var query2=`SELECT location_id,name,arabic_name,latitude,longitude FROM location where business_id='`+business_id+`'`;
+        const locations = await pool.query(query2);
+console.log(images.rows);
+console.log(locations.rows);
+res.json({"status": 1, "images":images.rows,"locations":locations.rows})
+        // res.json({"status": 1, "data": createUser.rows.map((items)=>{
+        //     // console.log(items);
+        //     let index=(createUser2.rows).findIndex(item=>item.sub_category_id==items.sub_category_id)
+        //     console.log(index);
+        //     if(index ==-1)
+        //     {
+        //         items['value']=false
+        //         return items
+        //     }
+        //     else{
+        //         items['value']=true
+        //         return items
+        //     }
+        // })});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
+
+router.post("/get_sub_category_list_in_business_locations", async(req, res) =>{//get_sub_category_list
     try {
         console.log(req.body.business_id);
         const business_id = req.body.business_id
@@ -358,8 +430,10 @@ router.post("/get_sub_category_list_in_business", async(req, res) =>{//get_sub_c
         const createUser = await pool.query(query);
         var query2=`SELECT sub_category_id FROM sub_categories_business where business_id='`+business_id+`'`;
         const createUser2 = await pool.query(query2);
+        var query3=`SELECT location_id,name FROM location`;
+        const locations = await pool.query(query3);
 console.log(createUser2.rows);
-        res.json({"status": 1, "data": createUser.rows.map((items)=>{
+        res.json({"status": 1, "sub_category_data": createUser.rows.map((items)=>{
             // console.log(items);
             let index=(createUser2.rows).findIndex(item=>item.sub_category_id==items.sub_category_id)
             console.log(index);
@@ -372,7 +446,10 @@ console.log(createUser2.rows);
                 items['value']=true
                 return items
             }
-        })});  
+        }),
+        "location_data":locations
+    
+    });  
     } catch (err) {
         res.json({"status": 0});  
         console.error(err.message);
@@ -475,7 +552,10 @@ router.post("/add_business", async(req, res) =>{
         console.log(req.body);
         var sub_categories_id = JSON.parse(req.body.sub_categories_id)
         var images = JSON.parse(req.body.images)
-        const { name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name ,mapingname ,arabic_mapingname } =JSON.parse(req.body.data);
+        const location_id  = req.body.location_id
+        // const service_name ={"data":JSON.parse(req.body.service_name)}
+        // const arabic_service_name ={"data":JSON.parse(req.body.arabic_service_name)}
+        const { name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing ,service_name, arabic_service_name } =JSON.parse(req.body.data);
         
         var start=new Date().toISOString();
 
@@ -486,7 +566,7 @@ router.post("/add_business", async(req, res) =>{
         );
         const business_id = createUser.rows[0].business_id
         await sub_categories_business(business_id,sub_categories_id,start)
-        await savelocation(business_id,latitude,longitude,start,mapingname,arabic_mapingname)
+        await savelocation(business_id,location_id,start)
         await saveimages(business_id,images,start)
         res.json({"status": 1});  
     } catch (err) {
@@ -522,19 +602,19 @@ async function sub_categories_business(business_id,sub_categories_id,start){
             console.log(createUser2);
 
 }
-async function savelocation(business_id,latitude,longitude,start,mapingname,arabic_mapingname)
+async function savelocation(business_id,location_id,start)
 {
   
-  const is_active =true
+//   const is_active =true
     // console.log(array);
-    const createUser2 = await pool.query(
-        `INSERT INTO location (name, arabic_name, latitude, longitude, is_active,created_at, updated_at ) VALUES ( $1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [mapingname, arabic_mapingname,  latitude, longitude,is_active,start,start]
-        // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
-    );
+    // const createUser2 = await pool.query(
+    //     `INSERT INTO location (name, arabic_name, latitude, longitude, is_active,created_at, updated_at ) VALUES ( $1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    //     [mapingname, arabic_mapingname,  latitude, longitude,is_active,start,start]
+    //     // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
+    // );
     const createUser3 = await pool.query(
         `INSERT INTO location_business ( business_id, location_id,created_at, updated_at ) VALUES ( $1, $2, $3, $4) RETURNING *`,
-        [ business_id,  createUser2.location_id,start,start]
+        [ business_id,location_id,start,start]
         // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
     );
     console.log(createUser3);
@@ -545,7 +625,7 @@ async function savelocation(business_id,latitude,longitude,start,mapingname,arab
 //                 [JSON.stringify(array)]
 //             );
             console.log("createUser2");
-console.log(createUser2);
+// console.log(createUser2);
 }
 async function saveimages(business_id,images,start)
 {

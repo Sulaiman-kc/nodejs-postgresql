@@ -80,6 +80,7 @@ router.get("/", async(req, res) =>{
 	    "description" TEXT,
 	    "arabic_description" TEXT,
         "address" VARCHAR(200),
+        "arabic_address" VARCHAR(200),
 	    "latitude" double precision,
 	    "longitude" double precision,
         "phone_number" VARCHAR(100),
@@ -90,8 +91,8 @@ router.get("/", async(req, res) =>{
 	    "web" VARCHAR(100),
 	    "social_media" VARCHAR(200),
 		"timing" VARCHAR(200),
-		"service_name" JSONB,
-		"arabic_service_name" JSONB,
+		"service_name" text,
+		"arabic_service_name" text,
         "created_at" TIMESTAMP,
 	    "updated_at" TIMESTAMP,
 	    PRIMARY KEY ("business_id")
