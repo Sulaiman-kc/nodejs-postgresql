@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
+var request = require('request');
 // var cors = require('cors')
 // router.use(cors());
 router.get("/drop_tables", async(req, res) =>{
@@ -128,60 +129,6 @@ router.get("/insertrating", async(req, res) =>{
         console.error(err.message);
     }
 });
-router.get("/insertlocation", async(req, res) =>{
-    try {
-        // var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
-        // console.log(query);
-        var number='1'
-        var start=new Date().toISOString();
-
-        const createUser = await pool.query(
-            `INSERT INTO location (name, arabic_name, latitude, longitude, is_active, created_at, updated_at ) VALUES ( $1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            ['lname'+number, 'larabic_name'+number, 3.555555 , 6.33333, true,start,start]
-            // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
-        );
-        res.json({"status": 1});  
-    } catch (err) {
-        res.json({"status": 0});  
-        console.error(err.message);
-    }
-});
-router.get("/insertlocationbusiness", async(req, res) =>{
-    try {
-        // var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
-        // console.log(query);
-        var number='4'
-        var start=new Date().toISOString();
-
-        const createUser = await pool.query(
-            `INSERT INTO location_business ( business_id, location_id, created_at, updated_at ) VALUES ( $1, $2, $3, $4) RETURNING *`,
-            [ '4', '1', start,start]
-            // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
-        );
-        res.json({"status": 1});  
-    } catch (err) {
-        res.json({"status": 0});  
-        console.error(err.message);
-    }
-});
-router.get("/insertbusiess", async(req, res) =>{
-    try {
-        // var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
-        // console.log(query);
-        var number='4'
-        var start=new Date().toISOString();
-
-        const createUser = await pool.query(
-            `INSERT INTO business (name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name, keywords, keys, created_at, updated_at ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24) RETURNING *`,
-            ['name'+number, 'arabic_name'+number, true, 'sub_name'+number, 'arabic_sub_name'+number,'description'+number,'arabic_description'+number, 'address'+number, '27.2050° N', '77.4950° E', 'phone_number'+number ,'alt_phone_number'+number, 'email'+number, 'slug'+number, 'rating'+number,   'web'+number, 'socialmedia'+number, 'timing'+number, '{"data":["service_name"]}' , '{"data":["arabic_service_name"]}',  '{"data":["keywords"]}',  '{"data":["keys"]}',start,start]
-            // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
-        );
-        res.json({"status": 1});  
-    } catch (err) {
-        res.json({"status": 0});  
-        console.error(err.message);
-    }
-});
 
 
 router.post("/get_main_sub_category", async(req, res) =>{
@@ -195,6 +142,12 @@ router.post("/get_main_sub_category", async(req, res) =>{
         res.json({"status": 0});  
         console.error(err.message);
     }
+});
+router.post("/", async(req, res) =>{
+	res.json({"type": "post"})
+});
+router.get("/", async(req, res) =>{
+   res.json({"type": "get"})
 });
 // router.post("/insert", async(req, res) =>{
 //     try {
@@ -280,17 +233,17 @@ router.post("/get_user_details", async(req, res) =>{
 
 router.post("/create_user", async(req, res) =>{//new_user
     try {
-        const { name, email, token, phone, address, lat, long, user_ip, otp, gender } = req.body//{ 'name':'name1','email':'email1','token':'token1','phone':'232341321','address':'dsffdfdfs1','lat':2.333333,'long':4.333333,'user_ip':'weqewqw1','otp':32323,'gender':'male' }
+        const { name, email, token, phone, address, lat, long, user_ip, otp, gender, image_url } = req.body//{ 'name':'name1','email':'email1','token':'token1','phone':'232341321','address':'dsffdfdfs1','lat':2.333333,'long':4.333333,'user_ip':'weqewqw1','otp':32323,'gender':'male' }
         req.body;
         var start=new Date().toISOString();
         console.log(otp);
         const createUser = await pool.query(
-            "INSERT INTO users (name, email, user_token, phone_number, address, latitude, longitude, user_ip, otp, gender, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *",
-            [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
+            "INSERT INTO users (name, email, user_token, phone_number, address, latitude, longitude, user_ip, otp, gender, image_url, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *",
+            [name, email, token, phone, address, lat, long, user_ip, otp, gender, image_url, start, start]
         );
         res.json({"status": 1, "data": createUser.rows[0]});  
     } catch (err) {
-        res.json({"status": 0, "data": []});  
+        res.json({"status": 0, "data": [], "msg": err.message});  
         console.error(err.message);
     }
 });
@@ -312,11 +265,11 @@ router.post("/update_notification_token", async(req, res) =>{
 
 router.post("/edit_user", async(req, res) =>{
     try {
-        const { name, email, phone, gender, avatar, id } = req.body;
-        var query = `UPDATE users SET name = $1, email = $2, phone_number = $3, gender = $4, avatar = $5 WHERE id = $6 RETURNING *`;
+        const { name, email, phone, image_url, id } = req.body;
+        var query = "UPDATE users SET name = $1, email = $2, phone_number = $3, image_url = $4 WHERE users_id = $5 RETURNING *";
         console.log(query);
-        const createUser = await pool.query(query,[name, email, phone, gender, avatar, id]);
-        res.json({"status": 1, "data": createUser.rows});  
+        const createUser = await pool.query(query,[name, email, phone, image_url, id]);
+        res.json({"status": 1, "data": createUser.rows[0]});  
     } catch (err) {
         res.json({"status": 0, "data": []});  
         console.error(err.message);
@@ -349,6 +302,23 @@ router.post("/get_users", async(req, res) =>{
         console.error(err.message);
     }
 });
+
+
+router.post("/business_enquiry", async(req, res) =>{
+    try {
+        const { name, business_name, email, phone, sub_category } = req.body;
+        var start=new Date().toISOString();
+        var query = `INSERT INTO business_enquiries (name, business_name, email, phone_number, sub_category, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
+        console.log(query);
+        const createUser = await pool.query(query, [name, business_name, email, phone, sub_category, start, start]);
+        res.json({"status": 1, "data": createUser.rows});  
+    } catch (err) {
+        res.json({"status": 0, "data": []});  
+        console.error(err.message);
+    }
+});
+
+
 
 router.post("/get_main_category", async(req, res) =>{//get_main_category
     try {
@@ -581,6 +551,49 @@ router.post("/store_rating", async(req, res) =>{
             console.error(err.message);
         }
     });
+    router.post("/push_notification", async(req, res) =>{//get_location
+
+        try {
+
+                var query = `SELECT user_token FROM users where is_active='true'`;
+                console.log(query);
+                const createUser = await pool.query(query);
+                var list = [];
+                for(var i = 0; i < createUser.rows.length; i++){
+                    list.push(createUser.rows[i]["user_token"]);
+                }
+                // res.json({"status": 1, "data": createUser.rows});
+            var body = {
+                "registration_ids" : list,
+                "notification" : {
+                    "body" : "Body of Your Notification",
+                    "title": "Title of Your Notification",
+                   "sound": "default"
+                },
+                "data" : {
+                    "body" : "https://fcm.googleapis.com/fcm/send",
+                    "title": "Title of Your Notification",
+                    "message": "Body of Your Notification",
+                   "sound": "default"
+                },
+               "priority": "high"
+            }
+            request({
+                url: "https://fcm.googleapis.com/fcm/send",
+                method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json; charset=UTF-8',
+                        'Authorization': 'key = AAAAUbKPSFA:APA91bF3l5wTxOD6MT0d7n-3LoCgPMemIZI6rWzX9XiC0i3SQE3ARD4Q4auEiljwQfQZeRJz6JGw5PoE_G9lBV1rTbwBem-wHdHwuu-dCYFeJ4u-1CCZH-vxs-OtgiuyQMfzGrNfCx-N',
+                },
+                body: JSON.stringify(body)
+            }, function (error, response, body){
+                
+                res.json({"status": 1, "data": list});  
+            });
+        } catch(err) {
+            res.json({"status": 0, "data": []});  
+        }
+    });
 //     router.post("/get_business_withkeyword", async(req, res) =>{//get_location
 //         try {
 //             const {user_id}  = req.body//'2';
@@ -612,6 +625,4 @@ router.post("/store_rating", async(req, res) =>{
 
 // select * from business where business_id in (select business_id from (select * from sub_categories_business as subb , (select * from sub_category where name='subs1') as sub where subb.sub_category_id=sub.sub_category_id) as subbsub) ;
 
-
-//select * from location as l,(select * from location_business as lb ,(select * from business where business_id='2')as b where lb.business_id=b.business_id) as lbb where l.location_id=lbb.location_id;
 module.exports = router;
