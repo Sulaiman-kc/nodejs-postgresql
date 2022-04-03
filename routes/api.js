@@ -594,6 +594,18 @@ router.post("/store_rating", async(req, res) =>{
             res.json({"status": 0, "data": []});  
         }
     });
+        router.post("/get_10business_location", async(req, res) =>{//get_location
+        try {
+            const {latitude , longitude}  = req.body//'2';
+            var query = `select business_id,image_url,business_name,rating,business_rating from rating r, (select business_id bi_business_id,image_url,business_name,rating business_rating from business_image bi ,(select name business_name,business_id bb_id,rating from business as b ,(select business_id b_id,distance from location_business as lb ,(select * from ( SELECT  location_id l_id ,name lname,( 3959 * acos( cos( radians(`+latitude+`) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(`+longitude+`) ) + sin( radians(`+latitude+`) ) * sin( radians( latitude ) ) ) ) AS distance  FROM location ) al where distance < 700000 ORDER BY distance desc ) as s where lb.location_id=s.l_id) as sb where b.business_id=sb.b_id order by distance limit 10) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id;`
+            console.log(query);
+            const createUser = await pool.query(query);
+            res.json({"status": 1, "data": createUser.rows});  
+        } catch (err) {
+            res.json({"status": 0, "data": []});  
+            console.error(err.message);
+        }
+    });
 //     router.post("/get_business_withkeyword", async(req, res) =>{//get_location
 //         try {
 //             const {user_id}  = req.body//'2';
@@ -606,23 +618,9 @@ router.post("/store_rating", async(req, res) =>{
 //             console.error(err.message);
 //         }
 //     });
-    // select * from alert where users_id='2';
-    // get_business_withkeyword
-    // select * from business b,(select business_id from keyword where name='name1') k where b.business_id=k.business_id;
-    // select latitude,longitude  from location l,(select business_id,location_id from location_business where business_id='4') lb where l.location_id=lb.location_id;
-    // select * from sub_category where sub_category_id in (select sub_category_id from main_sub_categories where main_category_id='4');
-
-// select * from business b ,(select business_id,type from favorites where users_id='1') fwithid where b.business_id=fwithid.business_id;
-// select bid,uname,latitude,longitude,rating,image_url from business_image bi,(select business_id bidfromr, bid,uname,latitude,longitude,rating from rating r ,(select bid,uname,latitude,longitude from location l,(select location_id lid,bid,uname  from location_business lb ,(select business_id bid ,name uname from business where business_id='2') b where lb.business_id=b.bid) bl where l.location_id=bl.lid) blfull where r.business_id=blfull.bid) blr where bi.business_id=blr.bid;
-
-// select * from ( SELECT  *,( 3959 * acos( cos( radians(6.414478) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(12.466646) ) + sin( radians(6.414478) ) * sin( radians( latitude ) ) ) ) AS distance  FROM location ) al where distance < 5 ORDER BY distance LIMIT 20;
-// SELECT id, ( 6371 * acos ( cos ( radians(27.2046° N) ) * cos( radians( lat ) ) * cos( radians( lng ) - radians($user_lng) ) + sin ( radians(27.2046° N) ) * sin( radians( lat ) ))) AS distanceFROM tableHAVING distance < 30ORDER BY distanceLIMIT 0 , 20;
-//l | long// 27.2046° N | 77.4977° E
-// select * from business as b join location_business as lb on b.business_id=lb.business_id; 
-// select location_id from location where latitude='27.2046° N';
-// select business_id from location_business as lb join location as l on lb.location_id=l.location_id where latitude='27.2046° N';
 
 
-// select * from business where business_id in (select business_id from (select * from sub_categories_business as subb , (select * from sub_category where name='subs1') as sub where subb.sub_category_id=sub.sub_category_id) as subbsub) ;
 
+// select business_id,image_url,business_name,rating from business_image bi ,(select name business_name,business_id bb_id,rating from business as b ,(select business_id b_id,distance from location_business as lb ,(select * from ( SELECT  location_id l_id ,name lname,( 3959 * acos( cos( radians(2.44445) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(5.222223) ) + sin( radians(2.44445) ) * sin( radians( latitude ) ) ) ) AS distance  FROM location ) al where distance < 700 ORDER BY distance desc ) as s where lb.location_id=s.l_id) as sb where b.business_id=sb.b_id order by distance limit 3) as b3 where bi.business_id=b3.bb_id;
+// select business_id,image_url,business_name,rating from rating r, (select business_id bi_business_id,image_url,business_name,rating business_rating from business_image bi ,(select name business_name,business_id bb_id,rating from business as b ,(select business_id b_id,distance from location_business as lb ,(select * from ( SELECT  location_id l_id ,name lname,( 3959 * acos( cos( radians(2.44445) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(5.222223) ) + sin( radians(2.44445) ) * sin( radians( latitude ) ) ) ) AS distance  FROM location ) al where distance < 700 ORDER BY distance desc ) as s where lb.location_id=s.l_id) as sb where b.business_id=sb.b_id order by distance limit 3) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id;
 module.exports = router;
