@@ -112,12 +112,15 @@ router.post("/add_main_category", async(req, res) =>{
         console.log(JSON.parse(req.body.sub_categories_id));
         var sub_categories_id = JSON.parse(req.body.sub_categories_id)
         const { name, arabic_name , image_url , order_column ,  is_active  } = JSON.parse(req.body.data);
+        
         var start=new Date().toISOString();
         const createUser = await pool.query(
             "INSERT INTO main_category (name,arabic_name, image_url, order_column, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6,$7) RETURNING *",
             [name,arabic_name, image_url, order_column,is_active, start, start]
         );
-        const main_category_id = createUser.rows[0].main_category_id
+
+        const main_category_id = await createUser.rows[0].main_category_id
+     
         var array=[]
         sub_categories_id.forEach(element => {
             let json={}
@@ -138,7 +141,7 @@ router.post("/add_main_category", async(req, res) =>{
             );
             console.log("createUser2");
 console.log(createUser2);
-        console.log("successfully added :"+JSON.stringify(createUser.rows[0]));
+        // console.log("successfully added :"+JSON.stringify(createUser.rows[0]));
         res.json({"status": 1, "data": createUser2.rows[0]});  
     } catch (err) {
         res.json({"status": 0});  
@@ -150,13 +153,38 @@ console.log(createUser2);
 router.post("/edit_main_category", async(req, res) =>{
     try {
         console.log(JSON.parse(req.body.data));
+        var sub_categories_id = JSON.parse(req.body.sub_categories_id)
         const { name,arabic_name, image_url, order_column, is_active, main_category_id } = JSON.parse(req.body.data);
         var start=new Date().toISOString();
         var query = `UPDATE main_category SET name = $1,arabic_name=$2 ,image_url = $3, order_column = $4, is_active = $5, updated_at = $6 WHERE main_category_id = $7 RETURNING *`;
         const createUser = await pool.query(query,
             [name,arabic_name, image_url, order_column,is_active, start, main_category_id]
         );
+        var query2 = `delete from main_sub_categories where main_category_id='`+main_category_id+`'`;
+        const deleteitem = await pool.query(query2);
+        console.log(query2);
+        console.log(deleteitem);
         console.log("successfully added :"+JSON.stringify(createUser.rows[0]));
+        var array=[]
+        sub_categories_id.forEach(element => {
+            let json={}
+            json['main_sub_categories_id'] =Math.random().toString(36).substr(2, 9);
+            json['main_category_id'] = main_category_id
+            json['sub_category_id'] = element.sub_category_id
+            json['created_at'] = start
+            json['updated_at'] = start
+            array.push(json)
+        });
+
+    console.log(array);
+   let createUser3 = await pool.query(
+                `INSERT INTO main_sub_categories
+                SELECT * FROM json_populate_recordset (NULL::main_sub_categories,
+                  $1)`,
+                [JSON.stringify(array)]
+            );
+            console.log(createUser3);
+            console.log("createUser2");
         res.json({"status": 1, "data": createUser.rows[0]});  
     } catch (err) {
         res.json({"status": 0});  
@@ -388,7 +416,7 @@ router.post("/get_businessimages_location", async(req, res) =>{//get_sub_categor
         // console.log(req.body.business_id);
         const business_id = req.body.business_id
         // business_image_id, url ,type
-        var query = `SELECT image_url,type FROM business_image where business_id='`+business_id+`'`;
+        var query = `SELECT business_image_id,image_url,type FROM business_image where business_id='`+business_id+`'`;
         console.log(query);
         const images = await pool.query(query);
         // "location_id" SERIAL,
@@ -396,11 +424,12 @@ router.post("/get_businessimages_location", async(req, res) =>{//get_sub_categor
 	    // "arabic_name" VARCHAR(100) NOT NULL,
 		// "latitude" double precision NOT NULL,
 		// "longitude" double precision NOT NULL,
-        var query2=`SELECT location_id,name,arabic_name,latitude,longitude FROM location where business_id='`+business_id+`'`;
+        var query2=`select location_id,latitude,longitude,name,arabic_name  from location l,(select business_id,location_id l_id from location_business where business_id='`+business_id+`') lb where l.location_id=lb.l_id;`;
+        // var query2=`SELECT location_id,name,arabic_name,latitude,longitude FROM location where business_id='`+business_id+`'`;
         const locations = await pool.query(query2);
 console.log(images.rows);
 console.log(locations.rows);
-res.json({"status": 1, "images":images.rows,"locations":locations.rows})
+res.json({"status": 1, "images":JSON.stringify(await images.rows),"locations":JSON.stringify( await locations.rows)})
         // res.json({"status": 1, "data": createUser.rows.map((items)=>{
         //     // console.log(items);
         //     let index=(createUser2.rows).findIndex(item=>item.sub_category_id==items.sub_category_id)
@@ -447,7 +476,7 @@ console.log(createUser2.rows);
                 return items
             }
         }),
-        "location_data":locations
+        "location_data":locations.rows
     
     });  
     } catch (err) {
@@ -545,6 +574,37 @@ router.post("/active_business", async(req, res) =>{
         console.error(err.message);
     }
 });
+router.post("/edit_business", async(req, res) =>{
+    try {
+        // var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
+        // console.log(query);
+        console.log(req.body);
+        var sub_categories_id = JSON.parse(req.body.sub_categories_id)
+        var images = JSON.parse(req.body.images)
+        const location_id  = req.body.location_id
+        const business_id =req.body.business_id
+        // const service_name ={"data":JSON.parse(req.body.service_name)}
+        // const arabic_service_name ={"data":JSON.parse(req.body.arabic_service_name)}
+        const { name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing ,service_name, arabic_service_name ,arabic_address } =JSON.parse(req.body.data);
+        
+        var start=new Date().toISOString();
+
+        const createUser = await pool.query(
+            `UPDATE business set name=$1, arabic_name=$2, is_active=$3, sub_name=$4, arabic_sub_name=$5,description=$6,arabic_description=$7, address=$8, latitude=$9, longitude=$10, phone_number =$11,alt_phone_number=$12, email=$13, slug=$14, rating=$15,   web=$16, social_media=$17, timing=$18, service_name=$19, arabic_service_name=$20, created_at=$21, updated_at=$22,arabic_address=$23 where business_id='`+business_id+`' RETURNING *`,
+            [name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name,start,start,arabic_address]
+            // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
+        );
+        // const business_id = createUser.rows[0].business_id
+        await sub_categories_business(business_id,sub_categories_id,start)
+        await savelocation(business_id,location_id,start)
+        await saveimages(business_id,images,start)
+        res.json({"status": 1});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.log(err);
+        console.error(err.message);
+    }
+});
 router.post("/add_business", async(req, res) =>{
     try {
         // var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
@@ -555,13 +615,13 @@ router.post("/add_business", async(req, res) =>{
         const location_id  = req.body.location_id
         // const service_name ={"data":JSON.parse(req.body.service_name)}
         // const arabic_service_name ={"data":JSON.parse(req.body.arabic_service_name)}
-        const { name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing ,service_name, arabic_service_name } =JSON.parse(req.body.data);
+        const { name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing ,service_name, arabic_service_name ,arabic_address } =JSON.parse(req.body.data);
         
         var start=new Date().toISOString();
 
         const createUser = await pool.query(
-            `INSERT INTO business (name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name, created_at, updated_at ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22) RETURNING *`,
-            [name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name,start,start]
+            `INSERT INTO business (name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name, created_at, updated_at,arabic_address ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23) RETURNING *`,
+            [name, arabic_name, is_active, sub_name, arabic_sub_name,description,arabic_description, address, latitude, longitude, phone_number ,alt_phone_number, email, slug, rating,   web, social_media, timing, service_name, arabic_service_name,start,start,arabic_address]
             // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
         );
         const business_id = createUser.rows[0].business_id
@@ -580,6 +640,10 @@ async function sub_categories_business(business_id,sub_categories_id,start){
     // "sub_category_id" INT,
     // "business_id" INT,
     // const business_id = createUser.rows[0].main_category_id
+    var query2 = `delete from sub_categories_business where business_id='`+business_id+`'`;
+        const deleteitem = await pool.query(query2);
+        console.log(query2);
+        console.log(deleteitem);
         var array=[]
         sub_categories_id.forEach(element => {
             let json={}
@@ -612,6 +676,10 @@ async function savelocation(business_id,location_id,start)
     //     [mapingname, arabic_mapingname,  latitude, longitude,is_active,start,start]
     //     // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
     // );
+    var query2 = `delete from location_business where business_id='`+business_id+`'`;
+    const deleteitem = await pool.query(query2);
+    console.log(query2);
+    console.log(deleteitem);
     const createUser3 = await pool.query(
         `INSERT INTO location_business ( business_id, location_id,created_at, updated_at ) VALUES ( $1, $2, $3, $4) RETURNING *`,
         [ business_id,location_id,start,start]
@@ -629,6 +697,10 @@ async function savelocation(business_id,location_id,start)
 }
 async function saveimages(business_id,images,start)
 {
+    var query2 = `delete from business_image where business_id='`+business_id+`'`;
+    const deleteitem = await pool.query(query2);
+    console.log(query2);
+    console.log(deleteitem);
     var array=[]
     images.forEach(element => {
         let json={}
