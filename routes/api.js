@@ -597,15 +597,277 @@ router.post("/store_rating", async(req, res) =>{
         router.post("/get_10business_location", async(req, res) =>{//get_location
         try {
             const {latitude , longitude}  = req.body//'2';
-            var query = `select business_id,image_url,business_name,rating,business_rating from rating r, (select business_id bi_business_id,image_url,business_name,rating business_rating from business_image bi ,(select name business_name,business_id bb_id,rating from business as b ,(select business_id b_id,distance from location_business as lb ,(select * from ( SELECT  location_id l_id ,name lname,( 3959 * acos( cos( radians(`+latitude+`) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(`+longitude+`) ) + sin( radians(`+latitude+`) ) * sin( radians( latitude ) ) ) ) AS distance  FROM location ) al where distance < 700000 ORDER BY distance desc ) as s where lb.location_id=s.l_id) as sb where b.business_id=sb.b_id order by distance limit 10) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id;`
+            // const latitude ='25.333333333333333'
+            // const longitude = '51.3333333333333'
+            // var query = `select business_id,image_url,business_name,rating,business_rating from rating r, (select business_id bi_business_id,image_url,business_name,rating business_rating from business_image bi ,(select name business_name,business_id bb_id,rating from business as b ,(select business_id b_id,distance from location_business as lb ,(select * from ( SELECT  location_id l_id ,name lname,( 3959 * acos( cos( radians(`+latitude+`) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(`+longitude+`) ) + sin( radians(`+latitude+`) ) * sin( radians( latitude ) ) ) ) AS distance  FROM location ) al where distance < 700000 ORDER BY distance desc ) as s where lb.location_id=s.l_id) as sb where b.business_id=sb.b_id order by distance limit 10) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id;`
+            var query =`select exists (select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating from business_image bi ,(select * from ( SELECT  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating,( 3959 * acos( cos( radians(`+latitude+`) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(`+longitude+`) ) + sin( radians(`+latitude+`) ) * sin( radians( latitude ) ) ) ) AS distance  FROM business ) al where distance < 700000 ORDER BY distance desc ) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id);`
             console.log(query);
-            const createUser = await pool.query(query);
-            res.json({"status": 1, "data": createUser.rows});  
+            const existrating = await pool.query(query);
+            console.log(existrating.rows[0].exists);
+            if(existrating.rows[0].exists)
+            {
+                var query2=`select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating from business_image bi ,(select * from ( SELECT  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating,( 3959 * acos( cos( radians(`+latitude+`) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(`+longitude+`) ) + sin( radians(`+latitude+`) ) * sin( radians( latitude ) ) ) ) AS distance  FROM business ) al where distance < 700000 ORDER BY distance desc ) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id`
+                const existrating2=await pool.query(query2);
+                res.json({"status": 1, "data": existrating2.rows}); 
+            }
+                // res.json({"status": 1, "data": existrating.rows});  
+            else{
+                var query2=`select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating from business_image bi ,(select * from ( SELECT  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating,( 3959 * acos( cos( radians(`+latitude+`) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(`+longitude+`) ) + sin( radians(`+latitude+`) ) * sin( radians( latitude ) ) ) ) AS distance  FROM business ) al where distance < 700000 ORDER BY distance desc ) as b3 where bi.business_id=b3.bb_id;`
+                const notexistrating=await pool.query(query2);
+                res.json({"status": 1, "data": notexistrating.rows}); 
+            }
         } catch (err) {
             res.json({"status": 0, "data": []});  
             console.error(err.message);
         }
     });
+    router.post("/get_10business_withuserid", async(req, res) =>{//get_location
+        try {
+            // const {latitude , longitude}  = req.body//'2';
+            // const latitude ='25.333333333333333'
+            // const longitude = '51.3333333333333'
+            const users_id=req.body
+            // var query = `select business_id,image_url,business_name,rating,business_rating from rating r, (select business_id bi_business_id,image_url,business_name,rating business_rating from business_image bi ,(select name business_name,business_id bb_id,rating from business as b ,(select business_id b_id,distance from location_business as lb ,(select * from ( SELECT  location_id l_id ,name lname,( 3959 * acos( cos( radians(`+latitude+`) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(`+longitude+`) ) + sin( radians(`+latitude+`) ) * sin( radians( latitude ) ) ) ) AS distance  FROM location ) al where distance < 700000 ORDER BY distance desc ) as s where lb.location_id=s.l_id) as sb where b.business_id=sb.b_id order by distance limit 10) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id;`
+            var query =`select exists (select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating from business_image bi ,(select  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating  FROM business b ,(select business_id f_bid from favorites where users_id=`+users_id+`) as f where b.business_id=f.f_bid)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id);`
+            console.log(query);
+            const existrating = await pool.query(query);
+            console.log(existrating.rows[0].exists);
+            if(existrating.rows[0].exists)
+            {
+                var query2=`select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating from business_image bi ,(select  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating  FROM business b ,(select business_id f_bid from favorites where users_id=`+users_id+`) as f where b.business_id=f.f_bid)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id;`
+                const existrating2=await pool.query(query2);
+                res.json({"status": 1, "data": existrating2.rows}); 
+            }
+                // res.json({"status": 1, "data": existrating.rows});  
+            else{
+                var query2=`select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating from business_image bi ,(select  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating  FROM business b ,(select business_id f_bid from favorites where users_id=`+users_id+`) as f where b.business_id=f.f_bid)  as b3 where bi.business_id=b3.bb_id`
+                const notexistrating=await pool.query(query2);
+                res.json({"status": 1, "data": notexistrating.rows}); 
+            }
+        } catch (err) {
+            res.json({"status": 0, "data": []});  
+            console.error(err.message);
+        }
+    });
+    router.post("/add_favorites", async(req, res) =>{
+        try {
+            // var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
+            // console.log(query);
+            var number='3'
+            var start=new Date().toISOString();
+            const { users_id , business_id} =req.body
+            // const users_id ='1'
+            // const business_id ='1'
+    
+            const createUser = await pool.query(
+                `INSERT INTO favorites (users_id,business_id, created_at, updated_at ) VALUES ( $1, $2, $3, $4) RETURNING *`,
+                [users_id,business_id,start,start]
+                // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
+            );
+            res.json({"status": 1,"data":createUser.rows[0]});  
+        } catch (err) {
+            res.json({"status": 0});  
+            console.error(err.message);
+        }
+    });
+    router.post("/delete_favorites", async(req, res) =>{
+        try {
+            const favorites_id ='2'
+    
+            const createUser = await pool.query(
+                `delete from favorites where favorites_id=`+favorites_id+``
+            );
+            res.json({"status": 1,"data":[]});  
+        } catch (err) {
+            res.json({"status": 0});  
+            console.error(err.message);
+        }
+    });
+    router.post("/get_10business_sort", async(req, res) =>{//get_location
+        try {
+            // const {latitude , longitude}  = req.body//'2';
+            // const latitude ='25.333333333333333'
+            // const longitude = '51.3333333333333'
+            // const users_id=req.body
+
+            const main_category_id ='2'
+            const sort = 'alphabetic'
+            const sub_category_id = 'all'
+            const location_id = 'all'
+            const latitude ='23.22222222222'
+            const longitude ='51.888888888888'
+
+            // var query = `select business_id,image_url,business_name,rating,business_rating from rating r, (select business_id bi_business_id,image_url,business_name,rating business_rating from business_image bi ,(select name business_name,business_id bb_id,rating from business as b ,(select business_id b_id,distance from location_business as lb ,(select * from ( SELECT  location_id l_id ,name lname,( 3959 * acos( cos( radians(`+latitude+`) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(`+longitude+`) ) + sin( radians(`+latitude+`) ) * sin( radians( latitude ) ) ) ) AS distance  FROM location ) al where distance < 700000 ORDER BY distance desc ) as s where lb.location_id=s.l_id) as sb where b.business_id=sb.b_id order by distance limit 10) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id;`
+            var sortedbusiness
+            if(sort=='alphabetic' && sub_category_id=='all' && location_id == 'all'){
+                sortedbusiness = await getallsortedbusiness(main_category_id)
+            }
+            else if(sort=='rating' && sub_category_id=='all' && location_id == 'all')
+            {
+                sortedbusiness = await getallratingsortedbusiness(main_category_id)
+                
+            }
+            else if(sort=='location' && sub_category_id=='all' && location_id == 'all')
+            {
+                sortedbusiness = await getalllocationsortedbusiness(main_category_id,latitude,longitude)
+            }
+            else if(sort=='alphabetic' && sub_category_id!=='all' && location_id == 'all')
+            {
+                sortedbusiness = await getallsubcategoryalphabetsortfilterbusiness(sub_category_id)
+            }
+            else if(sort=='rating' && sub_category_id!=='all' && location_id == 'all')
+            {
+                sortedbusiness = await getallsubcategoryratingsortfilterbusiness(sub_category_id)
+            }
+            else if(sort=='location' && sub_category_id!=='all' && location_id == 'all')
+            {
+                sortedbusiness = await getallsubcategoryfilterlocationsortedbusiness(sub_category_id,latitude,longitude)
+            }
+            // var query =`select exists (select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id='2') mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by business_name asc;);`
+            // console.log(query);
+            // const existrating = await pool.query(query);
+            // console.log(existrating.rows[0].exists);
+            // if(existrating.rows[0].exists)
+            // {
+            //     var query2=`select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id='2') mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by business_name asc;`
+            //     const existrating2=await pool.query(query2);
+            //     res.json({"status": 1, "data": existrating2.rows}); 
+            // }
+            // else{
+            //     var query2=`select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id='2') mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id`
+            //     const notexistrating=await pool.query(query2);
+            //     res.json({"status": 1, "data": notexistrating.rows}); 
+            // }
+                res.json({"status": 1, "data": await sortedbusiness.rows}); 
+            
+        } catch (err) {
+            res.json({"status": 0, "data": []});  
+            console.error(err.message);
+        }
+    });
+    async function getallsortedbusiness(main_category_id){
+            var query =`select exists (select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id=`+main_category_id+`) mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by business_name asc);`
+
+        console.log(query);
+        const existrating = await pool.query(query);
+        console.log(existrating.rows[0].exists);
+        if(existrating.rows[0].exists)
+        {
+            var query2=`select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id=`+main_category_id+`) mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by business_name asc;`
+            const existrating2=await pool.query(query2);
+            return existrating2
+
+            // res.json({"status": 1, "data": existrating2.rows}); 
+        }
+        else{
+            var query2=`select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id=`+main_category_id+`) mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id`
+            const notexistrating=await pool.query(query2);
+            return notexistrating
+            // res.json({"status": 1, "data": notexistrating.rows}); 
+        }
+    }
+    async function getallratingsortedbusiness(main_category_id){
+        var query =`select exists (select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id=`+main_category_id+`) mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by business_name asc);`
+        console.log(query);
+        const existrating = await pool.query(query);
+        console.log(existrating.rows[0].exists);
+        if(existrating.rows[0].exists)
+        {
+            var query2=`select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id=`+main_category_id+`) mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by rating desc;`
+            const existrating2=await pool.query(query2);
+            return existrating2
+
+            // res.json({"status": 1, "data": existrating2.rows}); 
+        }
+        else{
+            var query2=`select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id=`+main_category_id+`) mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id order by business_rating desc`
+            const notexistrating=await pool.query(query2);
+            return notexistrating
+            // res.json({"status": 1, "data": notexistrating.rows}); 
+        }
+    }
+    async function getalllocationsortedbusiness(main_category_id,latitude,longitude){
+        var query =`select exists (select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude,distance from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude,distance from business_image bi ,(select * from ( SELECT  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating,phone_number,latitude,longitude,( 3959 * acos( cos( radians(`+latitude+`) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(`+longitude+`) ) + sin( radians(`+latitude+`) ) * sin( radians( latitude ) ) ) ) AS distance  from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id=`+main_category_id+`) mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id ) al where distance < 700000 ) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by distance asc);`
+        console.log(query);
+        const existrating = await pool.query(query);
+        console.log(existrating.rows[0].exists);
+        if(existrating.rows[0].exists)
+        {
+            var query2=`select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude,distance from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude,distance from business_image bi ,(select * from ( SELECT  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating,phone_number,latitude,longitude,( 3959 * acos( cos( radians(`+latitude+`) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(`+longitude+`) ) + sin( radians(`+latitude+`) ) * sin( radians( latitude ) ) ) ) AS distance  from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id=`+main_category_id+`) mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id ) al where distance < 700000 ) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by distance asc;`
+            const existrating2=await pool.query(query2);
+            return existrating2
+
+            // res.json({"status": 1, "data": existrating2.rows}); 
+        }
+        else{
+            var query2=`select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude,distance from business_image bi ,(select * from ( SELECT  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating,phone_number,latitude,longitude,( 3959 * acos( cos( radians(`+latitude+`) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(`+longitude+`) ) + sin( radians(`+latitude+`) ) * sin( radians( latitude ) ) ) ) AS distance  from business b ,( select business_id b_id,mc_sub_id ,sub_category_id from sub_categories_business scb, ( select sub_category_id mc_sub_id from main_sub_categories msc,(select main_category_id main_category_id1 from main_category where main_category_id=`+main_category_id+`) mc where msc.main_category_id=mc.main_category_id1) ms where scb.sub_category_id=ms.mc_sub_id) m where b.business_id=m.b_id ) al where distance < 700000 ) as b3 where bi.business_id=b3.bb_id order by distance asc`
+            const notexistrating=await pool.query(query2);
+            return notexistrating
+            // res.json({"status": 1, "data": notexistrating.rows}); 
+        }
+    }
+    async function getallsubcategoryalphabetsortfilterbusiness(sub_category_id){
+        var query =`select exists (select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id ,sub_category_id from sub_categories_business  where  sub_category_id=`+sub_category_id+` ) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by business_name asc);`
+
+        console.log(query);
+        const existrating = await pool.query(query);
+        console.log(existrating.rows[0].exists);
+        if(existrating.rows[0].exists)
+        {
+            var query2=`select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id ,sub_category_id from sub_categories_business  where  sub_category_id=`+sub_category_id+` ) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by business_name asc;`
+            const existrating2=await pool.query(query2);
+            return existrating2
+
+            // res.json({"status": 1, "data": existrating2.rows}); 
+        }
+        else{
+            var query2=`select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id ,sub_category_id from sub_categories_business  where  sub_category_id=`+sub_category_id+` ) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id order by business_name asc ;`
+            const notexistrating=await pool.query(query2);
+            return notexistrating
+            // res.json({"status": 1, "data": notexistrating.rows}); 
+        }
+    }
+    async function getallsubcategoryratingsortfilterbusiness(sub_category_id){
+        var query =`select exists (select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id ,sub_category_id from sub_categories_business  where  sub_category_id=`+sub_category_id+` ) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by rating desc);`
+
+        console.log(query);
+        const existrating = await pool.query(query);
+        console.log(existrating.rows[0].exists);
+        if(existrating.rows[0].exists)
+        {
+            var query2=`select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id ,sub_category_id from sub_categories_business  where  sub_category_id=`+sub_category_id+` ) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by rating desc;`
+            const existrating2=await pool.query(query2);
+            return existrating2
+
+            // res.json({"status": 1, "data": existrating2.rows}); 
+        }
+        else{
+            var query2=`select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude from business_image bi ,(select business_id bb_id ,name business_name,arabic_name arabic_business_name ,sub_name,arabic_sub_name,b_id,rating,phone_number,latitude,longitude from business b ,( select business_id b_id ,sub_category_id from sub_categories_business  where  sub_category_id=`+sub_category_id+` ) m where b.business_id=m.b_id)  as b3 where bi.business_id=b3.bb_id order by business_rating desc ;`
+            const notexistrating=await pool.query(query2);
+            return notexistrating
+            // res.json({"status": 1, "data": notexistrating.rows}); 
+        }
+    }
+    async function getallsubcategoryfilterlocationsortedbusiness(main_category_id,latitude,longitude){
+        var query =`select exists ( select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude,distance from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude,distance from business_image bi ,(select * from ( SELECT  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating,phone_number,latitude,longitude,( 3959 * acos( cos( radians(23.4444) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(51.7777) ) + sin( radians(23.4444) ) * sin( radians( latitude ) ) ) ) AS distance  from business b ,( select business_id b_id,sub_category_id from sub_categories_business  where  sub_category_id='2' ) m where b.business_id=m.b_id ) al where distance < 700000 ) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by distance asc);`
+        console.log(query);
+        const existrating = await pool.query(query);
+        console.log(existrating.rows[0].exists);
+        if(existrating.rows[0].exists)
+        {
+            var query2=`select business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating,business_rating,phone_number,latitude,longitude,distance from rating r, (select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude,distance from business_image bi ,(select * from ( SELECT  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating,phone_number,latitude,longitude,( 3959 * acos( cos( radians(23.4444) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(51.7777) ) + sin( radians(23.4444) ) * sin( radians( latitude ) ) ) ) AS distance  from business b ,( select business_id b_id,sub_category_id from sub_categories_business  where  sub_category_id='2' ) m where b.business_id=m.b_id ) al where distance < 700000 ) as b3 where bi.business_id=b3.bb_id) bimage where r.business_id=bimage.bi_business_id order by distance asc;`
+            const existrating2=await pool.query(query2);
+            return existrating2
+
+            // res.json({"status": 1, "data": existrating2.rows}); 
+        }
+        else{
+            var query2=`select business_id bi_business_id,image_url,business_name,arabic_business_name,sub_name,arabic_sub_name,rating business_rating,phone_number,latitude,longitude,distance from business_image bi ,(select * from ( SELECT  business_id bb_id,name business_name,arabic_name arabic_business_name,sub_name,arabic_sub_name,rating,phone_number,latitude,longitude,( 3959 * acos( cos( radians(23.4444) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(51.7777) ) + sin( radians(23.4444) ) * sin( radians( latitude ) ) ) ) AS distance  from business b ,( select business_id b_id,sub_category_id from sub_categories_business  where  sub_category_id='2' ) m where b.business_id=m.b_id ) al where distance < 700000 ) as b3 where bi.business_id=b3.bb_id order by distance asc`
+            const notexistrating=await pool.query(query2);
+            return notexistrating
+            // res.json({"status": 1, "data": notexistrating.rows}); 
+        }
+    }
 //     router.post("/get_business_withkeyword", async(req, res) =>{//get_location
 //         try {
 //             const {user_id}  = req.body//'2';
