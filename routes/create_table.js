@@ -87,7 +87,7 @@ router.get("/", async(req, res) =>{
         "alt_phone_number" VARCHAR(100),
 	    "email" VARCHAR(100),
 	    "slug" VARCHAR(100),
-	    "rating" VARCHAR(10),
+	    "rating" INT,
 	    "web" VARCHAR(100),
 	    "social_media" VARCHAR(200),
 		"timing" VARCHAR(200),
