@@ -692,7 +692,6 @@ router.post("/store_rating", async(req, res) =>{
             const createUser = await pool.query(
                 `INSERT INTO favorites (users_id,business_id, created_at, updated_at ) VALUES ( $1, $2, $3, $4) RETURNING *`,
                 [users_id,business_id,start,start]
-                // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
             );
             res.json({"status": 1,"data":createUser.rows[0]});  
         } catch (err) {
@@ -702,12 +701,63 @@ router.post("/store_rating", async(req, res) =>{
     });
     router.post("/delete_favorites", async(req, res) =>{
         try {
-            const favorites_id ='2'
+            const {favorites_id} =req.body
     
             const createUser = await pool.query(
                 `delete from favorites where favorites_id=`+favorites_id+``
             );
             res.json({"status": 1,"data":[]});  
+        } catch (err) {
+            res.json({"status": 0});  
+            console.error(err.message);
+        }
+    });
+    router.post("/toggle_favorites", async(req, res) =>{
+        try {
+            // const favorites_id ='2'
+            const {favorites_id , users_id , business_id} =req.body
+            const fav = await pool.query(
+                `select * from favorites where favorites_id=`+favorites_id+``
+            );
+            if(fav.rows.length>0){
+                const deletefav = await pool.query(
+                    `INSERT INTO favorites (users_id,business_id, created_at, updated_at ) VALUES ( $1, $2, $3, $4) RETURNING *`,
+                    [users_id,business_id,start,start]
+                );
+                res.json({"status": 1,"data":"deleted"});  
+            }
+            else{
+                const deletefav = await pool.query(
+                    `delete from favorites where favorites_id=`+favorites_id+``
+                );
+                res.json({"status": 1,"data":"deleted"}); 
+            }
+        } catch (err) {
+            res.json({"status": 0});  
+            console.error(err.message);
+        }
+    });
+    router.post("/add_rating", async(req, res) =>{
+        try {
+            // var query = `DROP TABLE IF EXISTS users,main_category,sub_category,main_sub_categories,business,sub_categories_business,rating,pages,business_enquiries,alert,favorites,business_image,hits,search_hits,location,location_business`;
+            // console.log(query);
+        //     "rating_id" SERIAL,
+	    // "users_id" INT,
+	    // "business_id" INT,
+	    // "rating" VARCHAR(10),
+	    // "comments" JSONB,
+	    // "created_at" TIMESTAMP,
+            var number='3'
+            var start=new Date().toISOString();
+            const { users_id , business_id , rating , comments} =req.body
+            // const users_id ='1'
+            // const business_id ='1'
+    
+            const createUser = await pool.query(
+                `INSERT INTO rating ( users_id , business_id , rating , comments, created_at, updated_at ) VALUES ( $1, $2, $3, $4,$5,$6) RETURNING *`,
+                [users_id,business_id, rating , comments,start,start]
+            );
+            res.json({"status": 1,"data":createUser.rows[0]});  
         } catch (err) {
             res.json({"status": 0});  
             console.error(err.message);
