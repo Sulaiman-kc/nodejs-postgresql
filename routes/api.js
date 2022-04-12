@@ -231,10 +231,11 @@ router.post("/get_user_details", async(req, res) =>{
 
 
 
-router.post("/create_user", async(req, res) =>{//new_user
+router.get("/create_user", async(req, res) =>{//new_user
     try {
         const { name, email, token, phone, address, lat, long, user_ip, otp, gender, image_url } = req.body//{ 'name':'name1','email':'email1','token':'token1','phone':'232341321','address':'dsffdfdfs1','lat':2.333333,'long':4.333333,'user_ip':'weqewqw1','otp':32323,'gender':'male' }
-        req.body;
+        // req.body;
+        // var name = " name2"; email = "email2"; token = "token2"; phone = "phone2"; address = "dress2"; lat = "4323.2434322"; long = " 23443.243432"; user_ip = "er_ip2"; otp = "6752"; gender = "ender2"; image_url = "assets/images/logo.png"
         var start=new Date().toISOString();
         console.log(otp);
         const createUser = await pool.query(
@@ -242,7 +243,8 @@ router.post("/create_user", async(req, res) =>{//new_user
             [name, email, token, phone, address, lat, long, user_ip, otp, gender, image_url, start, start]
         );
         res.json({"status": 1, "data": createUser.rows[0]});  
-    } catch (err) {
+    } 
+    catch (err) {
         res.json({"status": 0, "data": [], "msg": err.message});  
         console.error(err.message);
     }
@@ -293,7 +295,7 @@ router.post("/update_location", async(req, res) =>{
 
 router.post("/get_users", async(req, res) =>{
     try {
-        var query = `SELECT * FROM users where is_active='true'`;
+        var query = `SELECT * FROM users where is_active='true' `;
         console.log(query);
         const createUser = await pool.query(query);
         res.json({"status": 1, "data": createUser.rows});  

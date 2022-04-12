@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const moment = require('moment');
+const jwt = require('jsonwebtoken');
 // const app =express()
 const pool = require("../db");
 var multer = require('multer');
@@ -56,9 +58,72 @@ router.use(function timelog(req, resp, next) {
         var query = `SELECT * FROM users where name='`+username+`' and password='`+password+`'`;
         console.log(query);
         const createUser = await pool.query(query);
-        console.log(createUser);
+        console.log(createUser.rows);
         var status=(createUser.rows.length>0)?createUser.rows[0].is_admin:false
-            res.json({"status": status});  
+        if(status)
+        {
+            var row=createUser.rows[0]
+        const issuedAt = moment().valueOf(); //TODO common time for token and Last_login
+    //     "issuer": "Information Security and Forensic Reasearch Center",
+    // "subject":"JWT-Authentication",
+    // "algorithm":  "RS256",
+        const signInOption = {
+            issuer : "sats studio",
+            subject : "JWT-Authentication",
+            iat : issuedAt,
+            exp : issuedAt + parseInt(2000)+999998989898,
+            algorithm : "RS256",
+            data:{
+                name : row.name,
+                users_id : row.users_id,
+                is_admin:row.is_admin
+            }
+        }
+        const token = jwt.sign(signInOption,"dalelna@2022");
+        res.json({"status": status,"token":token});  
+    }
+    else{
+
+        res.json({"status": false,"token":""});  
+    }
+
+        // if(row != undefined)
+        // {
+        //     const lastloginDB = Number(row.updated_at);
+        //     if(lastloginDB <= deco_token.iat)
+        //     {
+        //         let timeout =  row.session_timeout;
+        //         const signInOption = {
+        //             issuer : deco_token.issuer,
+        //             subject : deco_token.subject,
+        //             iat : lastloginDB,
+        //             exp : moment().valueOf() + parseInt(timeout)+3000000,
+        //             algorithm : config.algorithm,
+        //             data:{
+        //                 name: deco_token.data.name,
+        //                 users_id: deco_token.data.users_id,
+        //                 is_admin: deco_token.data.is_admin
+        //                 // config: (row.configupdate != null) ? true : false
+        //             }
+        //         }
+        //         const refresh_token = jwt.sign(signInOption,config.secret_key);
+        //         res.setHeader("Refresh_Token", refresh_token);
+        //         res.setHeader("Access-Control-Allow-Origin", "*");
+        //         res.setHeader("Access-Control-Allow-Methods", "*");
+        //         res.setHeader("Access-Control-Expose-Headers","Refresh_Token")
+        //         next();
+        //     }
+        //     else
+        //     {
+        //         console.log(err)
+        //         return res.status(401).json('Already Login In Another System');
+        //     }
+        // }
+        // else
+        // {
+        //     console.log('user deleted issue occur and handled  ( row.LAST_LOGIN ::undefined');
+        //     return res.status(401).json('user deleted');
+        // } 
     } catch (err) {
         res.json({"status": 0});  
         console.error(err.message);
@@ -75,9 +140,21 @@ router.use(function timelog(req, resp, next) {
         console.error(err.message);
     }
 });
+// get_location
+router.post("/get_location", async(req, res) =>{
+    try {
+        var query = `SELECT * FROM location`;
+        console.log(query);
+        const createUser = await pool.query(query);
+        res.json({"status": 1, "data": createUser.rows});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
 router.post("/get_users", async(req, res) =>{
     try {
-        var query = `SELECT * FROM users`;
+        var query = `SELECT * FROM users where is_admin='false'`;
         console.log(query);
         const createUser = await pool.query(query);
         res.json({"status": 1, "data": createUser.rows});  
