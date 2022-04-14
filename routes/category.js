@@ -52,6 +52,23 @@ router.use(function timelog(req, resp, next) {
         res.json({status:"success",serverpath:config.imageurlpath})
       }
   })
+  
+  router.post("/change_password", async(req, res) =>{
+    try {
+        const { username ,new_password}=req.body
+        var query = `update users set password='`+new_password+`' where name='`+username+`' and is_admin='true'`;
+        console.log(query);
+        const createUser = await pool.query(query);
+        console.log(createUser.command);
+        // var status=
+        res.json({"status": true});  
+
+    }
+    catch(err){
+        res.json({"status": false});  
+
+    }
+})
   router.post("/login_check", async(req, res) =>{
     try {
         const { username ,password}=req.body
@@ -144,6 +161,18 @@ router.use(function timelog(req, resp, next) {
 router.post("/get_location", async(req, res) =>{
     try {
         var query = `SELECT * FROM location`;
+        console.log(query);
+        const createUser = await pool.query(query);
+        res.json({"status": 1, "data": createUser.rows});  
+    } catch (err) {
+        res.json({"status": 0});  
+        console.error(err.message);
+    }
+});
+
+router.post("/get_last10users", async(req, res) =>{
+    try {
+        var query = `SELECT * FROM users where is_admin='false' order by created_at desc limit 10`;
         console.log(query);
         const createUser = await pool.query(query);
         res.json({"status": 1, "data": createUser.rows});  
