@@ -172,12 +172,20 @@ router.post("/get_location", async(req, res) =>{
 
 router.post("/get_last10users", async(req, res) =>{
     try {
-        var query = `SELECT * FROM users where is_admin='false' order by created_at desc limit 10`;
+        var totalusers =0  ;
+        var dailyusers=0;
+        // var query = `SELECT * FROM users where is_admin='false' order by created_at desc limit 10`;
+        var query =`SELECT *,(select count(*) from users ) totalusers,(select count(*) from users where created_at >=  NOW() - INTERVAL '24 HOURS'  ) dailyusers FROM users where is_admin='false' order by created_at desc limit 10`
         console.log(query);
-        const createUser = await pool.query(query);
-        res.json({"status": 1, "data": createUser.rows});  
+        const selectusers = await pool.query(query);
+        if(selectusers.rows.length>0){
+            totalusers=selectusers.rows[0].totalusers
+            dailyusers=selectusers.rows[0].dailyusers
+
+        }
+        res.json({"status": 1, "data": selectusers.rows,"totalusers":totalusers,"dailyusers":dailyusers});  
     } catch (err) {
-        res.json({"status": 0});  
+        res.json({"status": 0,"totalusers":totalusers,"dailyusers":dailyusers});  
         console.error(err.message);
     }
 });
@@ -703,6 +711,7 @@ router.post("/edit_business", async(req, res) =>{
         // const business_id = createUser.rows[0].business_id
         await sub_categories_business(business_id,sub_categories_id,start)
         await savelocation(business_id,location_id,start)
+        await saverating(business_id,rating,start)
         await saveimages(business_id,images,start)
         res.json({"status": 1});  
     } catch (err) {
@@ -733,6 +742,7 @@ router.post("/add_business", async(req, res) =>{
         const business_id = createUser.rows[0].business_id
         await sub_categories_business(business_id,sub_categories_id,start)
         await savelocation(business_id,location_id,start)
+        await saverating(business_id,rating,start)
         await saveimages(business_id,images,start)
         res.json({"status": 1});  
     } catch (err) {
@@ -771,6 +781,33 @@ async function sub_categories_business(business_id,sub_categories_id,start){
             console.log("createUser2");
             console.log(createUser2);
 
+}
+async function saverating(business_id,rating,start)
+{
+  
+    // "rating_id" SERIAL,
+    // "users_id" INT,
+    // "business_id" INT,
+    // "rating" VARCHAR(10),
+    // "comments
+    var query2 = `delete from rating where business_id='`+business_id+`'`;
+    const deleteitem = await pool.query(query2);
+    console.log(query2);
+    console.log(deleteitem);
+    const createUser3 = await pool.query(
+        `INSERT INTO rating ( business_id,users_id,rating,created_at, updated_at ) VALUES ( $1, $2, $3, $4,$5) RETURNING *`,
+        [ business_id,'1',rating,start,start]
+        // [name, email, token, phone, address, lat, long, user_ip, otp, gender, start, start]
+    );
+    console.log(createUser3);
+//    let createUser2 = await pool.query(
+//                 `INSERT INTO location
+//                 SELECT * FROM json_populate_recordset (NULL::location,
+//                   $1)`,
+//                 [JSON.stringify(array)]
+//             );
+            console.log("createUser2");
+// console.log(createUser2);
 }
 async function savelocation(business_id,location_id,start)
 {

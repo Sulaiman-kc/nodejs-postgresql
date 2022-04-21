@@ -230,7 +230,7 @@ router.get("/", async(req, res) =>{
 	    PRIMARY KEY ("location_business_id"),
 		FOREIGN KEY (business_id) REFERENCES business (business_id),
 		FOREIGN KEY (location_id) REFERENCES location (location_id)
-    );`,
+    );`,`INSERT INTO USERS (users_id,name,password,email,phone_number,is_admin) VALUES ('1','Dalelna','Dalelna@2022','Dalelna.co@gmail.com','1234567890','true')`
     ];
     for(var i in text){
         // console.log(text[i]);
